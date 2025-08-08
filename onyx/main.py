@@ -1,0 +1,33 @@
+"""
+Main CLI entry point for Onyx utilities.
+"""
+
+import click
+from onyx.commands import tree, count, find, backup, git, net, download, monitor
+
+
+@click.group()
+@click.version_option(version='0.1.0', prog_name="onyx")
+def cli():
+    """Onyx - Collection of useful CLI utilities."""
+    pass
+
+
+# Register commands
+cli.add_command(tree.tree)
+cli.add_command(count.count)
+cli.add_command(find.find)
+cli.add_command(backup.backup)
+cli.add_command(git.git)
+cli.add_command(net.net)
+cli.add_command(download.download)
+cli.add_command(monitor.monitor)
+
+
+def main():
+    """Entry point for the CLI."""
+    cli()
+
+
+if __name__ == "__main__":
+    main()
