@@ -10,8 +10,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        python-version: [3.12]
+        os: [windows-latest, ubuntu-latest]
+        python-version: [3.11]
 
     steps:
     - uses: actions/checkout@v4
@@ -27,7 +27,9 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
     
     - name: Install dependencies
-      run: poetry install
+      run: |
+        poetry lock
+        poetry install
     
     - name: Install PyInstaller
       run: poetry run pip install pyinstaller
@@ -35,13 +37,11 @@ jobs:
     - name: Build executable
       run: |
         poetry run pyinstaller --onefile --name onyx onyx/main.py
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          mv dist/onyx.exe dist/onyx-windows.exe
-        elif [ "${{ runner.os }}" == "macOS" ]; then
-          mv dist/onyx dist/onyx-macos
-        else
-          mv dist/onyx dist/onyx-linux
-        fi
+                 if [ "${{ runner.os }}" == "Windows" ]; then
+           mv dist/onyx.exe dist/onyx-windows.exe
+         else
+           mv dist/onyx dist/onyx-linux
+         fi
     
     - name: Upload executable
       uses: actions/upload-artifact@v4
@@ -64,14 +64,12 @@ jobs:
         files: |
           onyx-windows/onyx-windows.exe
           onyx-linux/onyx-linux
-          onyx-macos/onyx-macos
         body: |
           ## 🎉 Onyx CLI v${{ github.ref_name }}
           
-          ### 📦 Downloads
-          - **Windows**: `onyx-windows.exe` - Запустите в командной строке
-          - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
-          - **macOS**: `onyx-macos` - Сделайте исполняемым: `chmod +x onyx-macos`
+                     ### 📦 Downloads
+           - **Windows**: `onyx-windows.exe` - Запустите в командной строке
+           - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
           
           ### 🚀 Features
           - 🌳 **tree**: Отображение структуры папок с размерами и временем
