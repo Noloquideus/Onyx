@@ -7,6 +7,7 @@ import hashlib
 import json
 import time
 from pathlib import Path
+import re
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse, unquote
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -53,13 +54,8 @@ def single(url: str, output: Path, resume: bool, chunk_size: int, timeout: int,
         # Setup session
         session = _create_session(timeout, retries, user_agent, headers, verify_ssl)
         
-        # Determine output path
-        if output is None:
-            filename = _extract_filename_from_url(url)
-            output = Path(filename)
-        elif output.is_dir():
-            filename = _extract_filename_from_url(url)
-            output = output / filename
+        # Determine output path (try headers first, then URL)
+        output = _derive_output_path(session, url, output)
         
         if not quiet:
             click.echo(f"💾 Output: {output}")
@@ -375,13 +371,22 @@ def _create_session(timeout: int, retries: int, user_agent: str,
     """Create a configured requests session."""
     session = requests.Session()
     
-    # Configure retries
-    retry_strategy = Retry(
-        total=retries,
-        status_forcelist=[429, 500, 502, 503, 504],
-        method_whitelist=["HEAD", "GET", "OPTIONS"],
-        backoff_factor=1
-    )
+    # Configure retries (urllib3>=2 uses 'allowed_methods', older uses 'method_whitelist')
+    try:
+        retry_strategy = Retry(
+            total=retries,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["HEAD", "GET", "OPTIONS"],
+            backoff_factor=1,
+        )
+    except TypeError:
+        # Fallback for urllib3<2
+        retry_strategy = Retry(
+            total=retries,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"],
+            backoff_factor=1,
+        )
     
     adapter = HTTPAdapter(max_retries=retry_strategy)
     session.mount("http://", adapter)
@@ -417,6 +422,80 @@ def _extract_filename_from_url(url: str) -> str:
         filename = 'download'
     
     return filename
+
+
+def _filename_from_disposition(disposition: Optional[str]) -> Optional[str]:
+    """Try to extract filename from Content-Disposition header (RFC 6266)."""
+    if not disposition:
+        return None
+    # filename*="UTF-8''..."
+    match = re.search(r"filename\*\s*=\s*UTF-8''([^;]+)", disposition, re.IGNORECASE)
+    if match:
+        return _sanitize_filename(_repair_mojibake(unquote(match.group(1).strip('"'))))
+    # filename="..."
+    match = re.search(r'filename\s*=\s*"([^"]+)"', disposition, re.IGNORECASE)
+    if match:
+        return _sanitize_filename(_repair_mojibake(unquote(match.group(1))))
+    # filename=...
+    match = re.search(r'filename\s*=\s*([^;]+)', disposition, re.IGNORECASE)
+    if match:
+        return _sanitize_filename(_repair_mojibake(unquote(match.group(1).strip('"'))))
+    return None
+
+
+def _derive_output_path(session: requests.Session, url: str, output: Optional[Path]) -> Path:
+    """Determine final output path using headers or URL.
+    Priority: explicit output file > output dir + detected name > detected name in CWD.
+    """
+    # If explicit file path provided and not a directory
+    if output and (output.suffix or (output.exists() and output.is_file())):
+        return output
+
+    # Try to get filename from HEAD (Content-Disposition or final URL)
+    filename = None
+    try:
+        head = session.head(url, allow_redirects=True)
+        cd = head.headers.get('Content-Disposition')
+        filename = _filename_from_disposition(cd)
+        if not filename:
+            filename = _extract_filename_from_url(head.url)
+    except Exception:
+        pass
+
+    if not filename or filename == 'download':
+        filename = _extract_filename_from_url(url)
+    else:
+        filename = _sanitize_filename(_repair_mojibake(filename))
+
+    if output and output.is_dir():
+        return output / filename
+    elif output is None:
+        return Path(filename)
+    else:
+        # output given but is directory-like without existence; treat as dir
+        return Path(output) / filename
+
+
+_INVALID_WIN_CHARS = r'<>:"/\\|?*'
+
+def _sanitize_filename(name: str) -> str:
+    """Remove characters invalid on Windows and trim spaces/dots."""
+    cleaned = ''.join('_' if ch in _INVALID_WIN_CHARS else ch for ch in name)
+    cleaned = cleaned.strip(' .')
+    return cleaned or 'download'
+
+
+def _repair_mojibake(text: str) -> str:
+    """Attempt to fix mojibake from ISO-8859-1 decoded UTF-8 (common on Windows).
+
+    If typical sequences like 'Ã', 'Ð', 'Ñ' appear, try latin1->utf8 roundtrip.
+    """
+    if any(sym in text for sym in ('Ã', 'Ð', 'Ñ', 'Ò', 'Â')):
+        try:
+            return text.encode('latin-1', errors='ignore').decode('utf-8', errors='ignore') or text
+        except Exception:
+            return text
+    return text
 
 
 def _download_file(session: requests.Session, url: str, output_path: Path,

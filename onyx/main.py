@@ -7,7 +7,7 @@ from onyx.commands import tree, count, find, backup, git, net, download, monitor
 
 
 @click.group()
-@click.version_option(version='0.1.0', prog_name="onyx")
+@click.version_option(version='0.2.2', prog_name="onyx")
 def cli():
     """Onyx - Collection of useful CLI utilities."""
     pass

@@ -6,6 +6,9 @@ import re
 import os
 import fnmatch
 from pathlib import Path
+import platform
+import shutil
+import subprocess
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import json
@@ -14,10 +17,104 @@ import click
 from dateutil import parser as date_parser
 
 
-@click.group()
-def find():
-    """Intelligent file and content search."""
-    pass
+@click.group(invoke_without_command=True)
+@click.argument('quick', required=False)
+@click.option('--path', '-p', type=click.Path(path_type=Path), help='Root path for quick search (default: entire system)')
+@click.option('--max-depth', '-d', type=int, help='Maximum depth for quick search')
+@click.option('--limit', '-l', type=int, default=2000, help='Limit number of results (quick mode)')
+@click.option('--show-hidden', '-a', is_flag=True, help='Include hidden files for quick search')
+@click.pass_context
+def find(ctx: click.Context, quick: str, path: Path, max_depth: int, limit: int, show_hidden: bool):
+    """Intelligent file and content search.
+
+    Quick mode: `onyx find <pattern>` searches by filename pattern recursively in current directory
+    (or with --path). Example: `onyx find git.exe`.
+    """
+    if ctx.invoked_subcommand is None:
+        if not quick:
+            click.echo(ctx.get_help())
+            return
+        try:
+            import os, string
+            criteria = {'name': quick}
+            # Determine search roots: system-wide by default
+            roots: List[Path] = []
+            if path:
+                roots = [path]
+            else:
+                if os.name == 'nt':
+                    roots = [Path(f"{d}:\\") for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+                else:
+                    roots = [Path('/')]  # POSIX
+
+            # Try a fast system indexer first (Everything on Windows, locate on Linux)
+            fast_results = _fast_system_search(quick, limit)
+            if fast_results is not None and fast_results:
+                click.echo(f"✅ Found {len(fast_results)} items (fast index)")
+                shown = min(len(fast_results), 200)
+                for r in fast_results[:shown]:
+                    click.echo(r)
+                if len(fast_results) > shown:
+                    click.echo(f"... and {len(fast_results)-shown} more (use --limit to change)")
+                return
+
+            # Ignore common heavy/system directories by name
+            ignore_names = set()
+            if os.name == 'nt':
+                ignore_names.update({'Windows', '$Recycle.Bin', 'System Volume Information', 'ProgramData', 'Recovery', 'PerfLogs'})
+            else:
+                ignore_names.update({'proc', 'sys', 'dev', 'run', 'snap', 'lost+found'})
+
+            results = []
+            for root in roots:
+                results.extend(_search_files(root, criteria, 'both', ignore_patterns=ignore_names, max_depth=max_depth, show_hidden=show_hidden, limit=limit))
+            if not results:
+                click.echo("❌ No files found matching the criteria.")
+                return
+            click.echo(f"✅ Found {len(results)} items")
+            shown = min(len(results), 200)
+            for r in results[:shown]:
+                click.echo(str(r['path']))
+            if len(results) > shown:
+                click.echo(f"... and {len(results)-shown} more (use --limit to change)")
+        except Exception as e:
+            click.echo(f"❌ Error during quick search: {e}", err=True)
+
+
+def _fast_system_search(pattern: str, limit: int) -> Optional[List[str]]:
+    """Use OS indexers for very fast filename search when available.
+    - Windows: Everything CLI (es.exe)
+    - Linux: plocate/locate
+    Returns list of absolute paths or None if no fast backend available.
+    """
+    try:
+        system = platform.system().lower()
+        # Windows: Everything (es.exe)
+        if system == 'windows':
+            es = shutil.which('es.exe') or shutil.which('es')
+            if es:
+                # Everything does substring matching by default. Limit results.
+                cmd = [es, '-n', str(limit), pattern]
+                proc = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='ignore')
+                if proc.returncode == 0 and proc.stdout:
+                    lines = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+                    return lines
+                return []
+            return None
+        # Linux: plocate or locate
+        else:
+            loc = shutil.which('plocate') or shutil.which('locate')
+            if loc:
+                # -i case-insensitive, -l limit
+                cmd = [loc, '-i', '-l', str(limit), pattern]
+                proc = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='ignore')
+                if proc.returncode == 0 and proc.stdout:
+                    lines = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+                    return lines
+                return []
+            return None
+    except Exception:
+        return None
 
 
 @find.command()
