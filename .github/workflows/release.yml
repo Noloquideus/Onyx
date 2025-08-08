@@ -29,16 +29,20 @@ jobs:
     
     - name: Install dependencies
       run: |
+        export PATH="$HOME/.local/bin:$PATH"
         poetry lock
         poetry install
       shell: bash
     
     - name: Install PyInstaller
-      run: poetry run pip install pyinstaller
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        poetry run pip install pyinstaller
       shell: bash
     
     - name: Build executable
       run: |
+        export PATH="$HOME/.local/bin:$PATH"
         poetry run pyinstaller --onefile --name onyx onyx/main.py
         if [ "${{ runner.os }}" == "Windows" ]; then
           mv dist/onyx.exe dist/onyx-windows.exe
