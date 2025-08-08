@@ -1,41 +1,41 @@
-# Руководство по развертыванию Onyx
+# Onyx Deployment Guide
 
-## Подготовка к публикации на GitHub
+## Preparing for GitHub
 
-### 1. Создание репозитория на GitHub
+### 1. Create a repository on GitHub
 
-1. Перейдите на [GitHub](https://github.com) и создайте новый репозиторий
-2. Назовите его `onyx` или `onyx-cli`
-3. НЕ инициализируйте с README, .gitignore или лицензией (у нас уже есть файлы)
+1. Go to [GitHub](https://github.com) and create a new repository
+2. Name it `onyx` or `onyx-cli`
+3. Do NOT initialize with README, .gitignore or license (we already have files)
 
-### 2. Подключение локального репозитория к GitHub
+### 2. Connect local repository to GitHub
 
 ```bash
-# Добавьте удаленный репозиторий (замените YOUR_USERNAME на ваше имя пользователя)
+# Add remote (replace YOUR_USERNAME with your username)
 git remote add origin https://github.com/YOUR_USERNAME/onyx.git
 
-# Отправьте код и тег
+# Push code and a tag
 git push -u origin master
 git push origin v0.1.0
 ```
 
-### 3. Автоматическое создание релизов
+### 3. Automatic Releases
 
-После отправки тега GitHub Actions автоматически:
-1. Соберет исполняемые файлы для Windows, Linux и macOS
-2. Создаст релиз с готовыми к скачиванию файлами
-3. Добавит подробное описание релиза
+After pushing a tag, GitHub Actions will automatically:
+1. Build executables for Windows and Linux
+2. Create a release with downloadable assets
+3. Add a detailed release body
 
-### 4. Создание нового релиза
+### 4. Creating a new release
 
-Для создания нового релиза:
+To create a new release:
 
-1. Обновите версию в `pyproject.toml`:
+1. Bump the version in `pyproject.toml`:
    ```toml
    version = "0.1.1"
    ```
 
-2. Создайте новый коммит и тег:
+2. Commit and tag:
    ```bash
    git add pyproject.toml
    git commit -m "Bump version to 0.1.1"
@@ -44,76 +44,72 @@ git push origin v0.1.0
    git push origin v0.1.1
    ```
 
-3. GitHub Actions автоматически создаст релиз с исполняемыми файлами
+3. GitHub Actions will automatically create a release with executables
 
-### 5. Структура релиза
+### 5. Release contents
 
-Каждый релиз будет содержать:
-- `onyx-windows.exe` - для Windows
-- `onyx-linux` - для Linux
-- `onyx-macos` - для macOS
+Each release contains:
+- `onyx-windows.exe` — Windows
+- `onyx-linux` — Linux
 
-### 6. Установка для пользователей
+### 6. Installation for users
 
 #### Windows
-1. Скачайте `onyx-windows.exe`
-2. Переместите в папку из PATH (например, `C:\Windows\System32\`)
-3. Или используйте полный путь: `C:\path\to\onyx-windows.exe --help`
+1. Download `onyx-windows.exe`
+2. Place it in a folder from PATH (e.g., `C:\Windows\System32\`) or any folder and run by full path
+3. Example: `C:\path\to\onyx-windows.exe --help`
 
-#### Linux/macOS
-1. Скачайте соответствующий файл
-2. Сделайте исполняемым: `chmod +x onyx-linux`
-3. Переместите в папку из PATH: `sudo mv onyx-linux /usr/local/bin/onyx`
-4. Или используйте полный путь: `./onyx-linux --help`
+#### Linux
+1. Download the file
+2. Make it executable: `chmod +x onyx-linux`
+3. Optionally move to PATH: `sudo mv onyx-linux /usr/local/bin/onyx`
+4. Or run by full path: `./onyx-linux --help`
 
-### 7. Проверка работы
-
-После установки проверьте:
+### 7. Verify installation
 ```bash
 # Windows
 onyx-windows.exe --help
 
-# Linux/macOS
+# Linux
 onyx --help
 ```
 
-## Локальная сборка (для разработки)
+## Local build (for development)
 
-### Сборка на Windows
+### Windows build
 ```bash
-# Установите PyInstaller
+# Install PyInstaller
 pip install pyinstaller
 
-# Соберите исполняемый файл
+# Build executable
 pyinstaller --onefile --name onyx onyx/main.py
 
-# Исполняемый файл будет в dist/onyx.exe
+# Output in dist/onyx.exe
 ```
 
-### Сборка на Linux/macOS
+### Linux build
 ```bash
-# Установите PyInstaller
+# Install PyInstaller
 pip install pyinstaller
 
-# Соберите исполняемый файл
+# Build executable
 pyinstaller --onefile --name onyx onyx/main.py
 
-# Исполняемый файл будет в dist/onyx
+# Output in dist/onyx
 ```
 
 ## Troubleshooting
 
-### Проблемы с GitHub Actions
-- Проверьте логи в Actions → Workflows
-- Убедитесь, что тег создан правильно: `v0.1.0`
-- Проверьте, что все файлы добавлены в коммит
+### GitHub Actions
+- Check logs in Actions → Workflows
+- Ensure the tag is created correctly: `v0.1.0`
+- Ensure all files are committed
 
-### Проблемы с локальной сборкой
-- Убедитесь, что все зависимости установлены
-- Проверьте, что Python 3.12+ используется
-- Для Windows может потребоваться Visual Studio Build Tools
+### Local build
+- Ensure dependencies are installed
+- Ensure compatible Python is used (>=3.10,<3.13)
 
-### Проблемы с установкой
-- Убедитесь, что файл скачан полностью
-- Проверьте права доступа (для Linux/macOS)
-- Попробуйте запустить с полным путем к файлу
+### Installation
+- Ensure the file is fully downloaded
+- Check permissions (Linux)
+- Try running with a full path

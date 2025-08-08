@@ -12,7 +12,7 @@ import click
 
 @dataclass
 class FileStats:
-    """Статистика по файлу"""
+    """File statistics"""
     path: str
     lines: int
     size_bytes: int
@@ -20,7 +20,7 @@ class FileStats:
 
 @dataclass
 class DirectoryStats:
-    """Общая статистика по директории"""
+    """Aggregate directory statistics"""
     total_files: int
     total_lines: int
     total_size_bytes: int
@@ -28,18 +28,18 @@ class DirectoryStats:
 
 
 class LineCounter:
-    """Класс для подсчета строк в файлах"""
+    """Counts lines in files"""
     
     def __init__(self, extensions: set = None, ignore_empty_lines: bool = False, 
                  ignore_comments: bool = False, ignore_patterns: List[str] = None, 
                  show_hidden: bool = False):
         """
         Args:
-            extensions: Множество расширений файлов для анализа
-            ignore_empty_lines: Игнорировать пустые строки
-            ignore_comments: Игнорировать строки-комментарии
-            ignore_patterns: Список паттернов файлов/папок для игнорирования
-            show_hidden: Показывать скрытые файлы
+            extensions: Set of file extensions to analyze
+            ignore_empty_lines: Ignore empty lines
+            ignore_comments: Ignore comment lines
+            ignore_patterns: List of file/folder ignore patterns
+            show_hidden: Include hidden files
         """
         self.ignore_empty_lines = ignore_empty_lines
         self.ignore_comments = ignore_comments
@@ -49,13 +49,13 @@ class LineCounter:
     
     def count_lines_in_file(self, file_path: Path) -> int:
         """
-        Подсчитывает строки в одном файле
+        Count lines in a single file
         
         Args:
-            file_path: Путь к файлу
+            file_path: Path to the file
             
         Returns:
-            int: Количество строк
+            int: Number of lines
         """
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -68,11 +68,11 @@ class LineCounter:
             for line in lines:
                 stripped = line.strip()
                 
-                # Пропускаем пустые строки если нужно
+                # Skip empty lines if requested
                 if self.ignore_empty_lines and not stripped:
                     continue
                 
-                # Пропускаем комментарии если нужно
+                # Skip comment lines if requested
                 if self.ignore_comments and stripped.startswith('#'):
                     continue
                 
@@ -84,12 +84,12 @@ class LineCounter:
             return 0
     
     def should_include_file(self, file_path: Path) -> bool:
-        """Проверяет, нужно ли включать файл в анализ"""
-        # Проверяем расширение, если указаны конкретные расширения
+        """Check whether a file should be included in the analysis"""
+        # Check extension if a restricted set is provided
         if self.extensions and file_path.suffix.lower() not in self.extensions:
             return False
         
-        # Проверяем скрытые файлы
+        # Check hidden files
         if not self.show_hidden and file_path.name.startswith('.'):
             return False
             
@@ -97,31 +97,31 @@ class LineCounter:
     
     def should_ignore(self, path: Path) -> bool:
         """
-        Проверяет, нужно ли игнорировать файл или папку
+        Check whether a file or directory should be ignored
         
         Args:
-            path: Путь к файлу или папке
+            path: Path to a file or directory
             
         Returns:
-            bool: True если нужно игнорировать
+            bool: True if it should be ignored
         """
         path_str = str(path)
         path_name = path.name
         
         for pattern in self.ignore_patterns:
-            # Проверяем точное совпадение имени
+            # Exact name match
             if path_name == pattern:
                 return True
             
-            # Проверяем паттерны с wildcard
+            # Wildcard pattern match
             if fnmatch.fnmatch(path_name, pattern):
                 return True
             
-            # Проверяем содержится ли паттерн в пути
+            # Pattern contained in the path
             if pattern in path_str:
                 return True
             
-            # Проверяем расширения
+            # Extension match
             if pattern.startswith('.') and path_name.endswith(pattern):
                 return True
         
@@ -129,28 +129,28 @@ class LineCounter:
     
     def count_lines_recursive(self, root_path: Path, algorithm: str = "dfs") -> DirectoryStats:
         """
-        Подсчет строк с использованием указанного алгоритма
+        Count lines using the given algorithm
         
         Args:
-            root_path: Корневая директория для поиска
-            algorithm: 'dfs' или 'bfs'
+            root_path: Root directory to search
+            algorithm: 'dfs' or 'bfs'
             
         Returns:
-            DirectoryStats: Статистика по директории
+            DirectoryStats: Directory statistics
         """
         if not root_path.exists():
-            raise FileNotFoundError(f"Путь не существует: {root_path}")
+            raise FileNotFoundError(f"Path does not exist: {root_path}")
         
         files_stats = []
         
         if algorithm == "dfs":
-            # DFS (Depth-First Search) - стек
+            # DFS (Depth-First Search) - stack
             stack = [root_path]
             
             while stack:
                 current_path = stack.pop()
                 
-                # Проверяем, нужно ли игнорировать этот путь (кроме корневой папки)
+                # Skip if this path should be ignored (except the root folder)
                 if current_path != root_path and self.should_ignore(current_path):
                     continue
                 
@@ -167,10 +167,10 @@ class LineCounter:
                             ))
                     
                     elif current_path.is_dir():
-                        # Добавляем все содержимое директории в стек (в обратном порядке для правильного DFS)
+                        # Push directory contents onto stack (reverse order for correct DFS)
                         try:
                             items = sorted(current_path.iterdir(), reverse=True)
-                            # Фильтруем игнорируемые элементы перед добавлением в стек
+                            # Filter ignored items before pushing
                             filtered_items = [item for item in items if not self.should_ignore(item)]
                             stack.extend(filtered_items)
                         except PermissionError:
@@ -179,13 +179,13 @@ class LineCounter:
                 except Exception:
                     pass
         else:
-            # BFS (Breadth-First Search) - очередь
+            # BFS (Breadth-First Search) - queue
             queue = deque([root_path])
             
             while queue:
                 current_path = queue.popleft()
                 
-                # Проверяем, нужно ли игнорировать этот путь (кроме корневой папки)
+                # Skip if this path should be ignored (except the root folder)
                 if current_path != root_path and self.should_ignore(current_path):
                     continue
                 
@@ -202,10 +202,10 @@ class LineCounter:
                             ))
                     
                     elif current_path.is_dir():
-                        # Добавляем все содержимое директории в очередь
+                        # Enqueue directory contents
                         try:
                             items = sorted(current_path.iterdir())
-                            # Фильтруем игнорируемые элементы перед добавлением в очередь
+                            # Filter ignored items before enqueuing
                             filtered_items = [item for item in items if not self.should_ignore(item)]
                             queue.extend(filtered_items)
                         except PermissionError:
