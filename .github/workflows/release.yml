@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         python-version: [3.11]
 
     steps:
@@ -69,15 +69,13 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          onyx-windows/onyx-windows.exe
-          onyx-linux/onyx-linux
+                 files: |
+           onyx-linux/onyx-linux
         body: |
           ## 🎉 Onyx CLI v${{ github.ref_name }}
           
-          ### 📦 Downloads
-          - **Windows**: `onyx-windows.exe` - Запустите в командной строке
-          - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
+                     ### 📦 Downloads
+           - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
           
           ### 🚀 Features
           - 🌳 **tree**: Отображение структуры папок с размерами и временем
@@ -89,14 +87,11 @@ jobs:
           - ⬇️ **download**: Загрузка файлов с прогресс-барами
           - 📊 **monitor**: Мониторинг системных ресурсов
           
-          ### 📋 Usage
-          ```bash
-          # Windows
-          onyx-windows.exe --help
-          
-          # Linux
-          ./onyx-linux --help
-          ```
+                     ### 📋 Usage
+           ```bash
+           # Linux
+           ./onyx-linux --help
+           ```
           
           ### 🔧 Installation
           1. Скачайте файл для вашей ОС
