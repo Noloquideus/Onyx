@@ -16,6 +16,18 @@
 
 ## Установка
 
+### Скачивание готового исполняемого файла (рекомендуется)
+
+1. Перейдите в [Releases](https://github.com/your-username/onyx/releases)
+2. Скачайте файл для вашей ОС:
+   - **Windows**: `onyx-windows.exe`
+   - **Linux**: `onyx-linux`
+   - **macOS**: `onyx-macos`
+
+3. Установка:
+   - **Windows**: Переместите `onyx-windows.exe` в папку из PATH или используйте полный путь
+   - **Linux/macOS**: `chmod +x onyx-linux && sudo mv onyx-linux /usr/local/bin/onyx`
+
 ### Из исходного кода
 
 1. Клонируйте репозиторий:
@@ -29,10 +41,10 @@ cd Onyx
 poetry install
 ```
 
-3. Для глобальной установки:
+3. Для создания исполняемого файла:
 ```bash
-poetry build
-pip install dist/onyx-*.whl
+poetry run pip install pyinstaller
+poetry run pyinstaller --onefile --name onyx onyx/main.py
 ```
 
 ### Используя pip (из локальной папки)
