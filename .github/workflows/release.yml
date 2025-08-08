@@ -44,11 +44,13 @@ jobs:
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         poetry run pyinstaller --onefile --name onyx onyx/main.py
+        ls -la dist/
         if [ "${{ runner.os }}" == "Windows" ]; then
           mv dist/onyx.exe dist/onyx-windows.exe
         else
           mv dist/onyx dist/onyx-linux
         fi
+        ls -la dist/
       shell: bash
     
     - name: Upload executable
@@ -66,11 +68,18 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
     
+    - name: Debug files
+      run: |
+        ls -la
+        ls -la onyx-*/
+        find . -name "onyx*" -type f
+      shell: bash
+    
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          onyx-linux/onyx-linux
+          onyx-Linux/onyx-linux
         body: |
           ## 🎉 Onyx CLI v${{ github.ref_name }}
           
