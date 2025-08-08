@@ -37,11 +37,11 @@ jobs:
     - name: Build executable
       run: |
         poetry run pyinstaller --onefile --name onyx onyx/main.py
-                 if [ "${{ runner.os }}" == "Windows" ]; then
-           mv dist/onyx.exe dist/onyx-windows.exe
-         else
-           mv dist/onyx dist/onyx-linux
-         fi
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          mv dist/onyx.exe dist/onyx-windows.exe
+        else
+          mv dist/onyx dist/onyx-linux
+        fi
     
     - name: Upload executable
       uses: actions/upload-artifact@v4
@@ -67,9 +67,9 @@ jobs:
         body: |
           ## 🎉 Onyx CLI v${{ github.ref_name }}
           
-                     ### 📦 Downloads
-           - **Windows**: `onyx-windows.exe` - Запустите в командной строке
-           - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
+          ### 📦 Downloads
+          - **Windows**: `onyx-windows.exe` - Запустите в командной строке
+          - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
           
           ### 🚀 Features
           - 🌳 **tree**: Отображение структуры папок с размерами и временем
@@ -86,14 +86,13 @@ jobs:
           # Windows
           onyx-windows.exe --help
           
-          # Linux/macOS
+          # Linux
           ./onyx-linux --help
-          ./onyx-macos --help
           ```
           
           ### 🔧 Installation
           1. Скачайте файл для вашей ОС
-          2. Для Linux/macOS: `chmod +x onyx-*`
+          2. Для Linux: `chmod +x onyx-linux`
           3. Переместите в папку из PATH или используйте полный путь
           
           ### 📖 Examples
