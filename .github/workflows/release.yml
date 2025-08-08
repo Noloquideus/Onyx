@@ -111,3 +111,4 @@ jobs:
           ```
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Если нужно, используйте PAT: GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
