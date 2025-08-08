@@ -25,14 +25,17 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.local/bin" >> $GITHUB_PATH
+      shell: bash
     
     - name: Install dependencies
       run: |
         poetry lock
         poetry install
+      shell: bash
     
     - name: Install PyInstaller
       run: poetry run pip install pyinstaller
+      shell: bash
     
     - name: Build executable
       run: |
@@ -42,6 +45,7 @@ jobs:
         else
           mv dist/onyx dist/onyx-linux
         fi
+      shell: bash
     
     - name: Upload executable
       uses: actions/upload-artifact@v4
