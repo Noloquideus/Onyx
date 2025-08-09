@@ -4,6 +4,7 @@ Main CLI entry point for Onyx utilities.
 
 import click
 from onyx.commands import tree, count, find, backup, git, net, download, monitor
+from onyx.commands.unlock import unlock
 
 
 @click.group()
@@ -22,6 +23,7 @@ cli.add_command(git.git)
 cli.add_command(net.net)
 cli.add_command(download.download)
 cli.add_command(monitor.monitor)
+cli.add_command(unlock)
 
 
 def main():
