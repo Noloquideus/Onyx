@@ -9,12 +9,13 @@ A cross‑platform, multi‑purpose CLI tool (Windows/Linux) for working with fi
 ### Features
 - **tree**: advanced directory tree (filters, sizes, dates, hidden files, total size summary)
 - **count**: line counter (by extensions, ignore patterns, BFS/DFS, detailed stats)
-- **find**: search files and file contents (globs, case sensitivity, context)
+- **find**: quick global filename search and advanced file/content search (globs, regex, context); uses Everything/locate when available
 - **backup**: simple directory backups (archiving, excludes)
-- **git**: quick git utilities (stats, status, recent commits)
-- **net**: networking helpers (ping, whois, ip, ports)
-- **download**: file downloader with progress bar and resume
-- **monitor**: live CPU/RAM/disk/network monitoring
+- **git**: repository analytics (commits, authors, files, activity)
+- **net**: connectivity and diagnostics (ping, traceroute, ports, ip)
+- **download**: downloader with progress, resume, size limits, checksum, smart naming
+- **monitor**: live CPU/RAM/disk/network monitoring and processes
+- **unlock**: release file locks and clear restrictive attributes (Windows/Linux)
 
 ---
 
@@ -46,9 +47,9 @@ Requirements: Python >=3.10,<3.13.
 
 ## Quick Start
 
-Show a directory tree with sizes and modification times:
+Tree (sizes + modified time):
 ```bash
-onyx tree . --show-files --show-size --show-modified-time
+onyx tree . --show-time --show-hidden   # use --no-files to hide files
 ```
 
 Count lines only in Python files:
@@ -56,19 +57,31 @@ Count lines only in Python files:
 onyx count . --extensions .py --show-files
 ```
 
-Find text in files using a glob pattern:
+Quick global filename search (uses Everything/locate if available):
 ```bash
-onyx find . --pattern "*.py" --text "TODO" --ignore ".venv,__pycache__"
+onyx find git.exe             # search across the whole system
+onyx find README.md --path .  # restrict to current folder
 ```
 
-Download a file with a progress bar:
+Find text inside files:
 ```bash
-onyx download https://example.com/file.zip -o ./file.zip
+onyx find content . "TODO" --extension .py -C 2
 ```
 
-System monitoring:
+Download with progress and smart naming:
 ```bash
-onyx monitor system
+onyx download single "https://example.com/file.zip" -o file.zip
+# Google Drive direct: https://drive.google.com/uc?export=download&id=<ID>
+```
+
+Monitor system resources:
+```bash
+onyx monitor system --interval 1 --duration 10
+```
+
+Unlock a file for deletion/modification:
+```bash
+onyx unlock "C:\path\to\file.txt" --force --recursive
 ```
 
 ---
@@ -84,6 +97,7 @@ onyx git --help
 onyx net --help
 onyx download --help
 onyx monitor --help
+onyx unlock --help
 ```
 
 ---

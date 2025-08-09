@@ -1,6 +1,6 @@
 [project]
 name = "onyx"
-version = "0.1.0"
+version = "0.3.2"
 description = "Powerful collection of CLI utilities for developers and system administrators"
 authors = [
     {name = "Noloquideus",email = "daniilmanukian@gmail.com"}
