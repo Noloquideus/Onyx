@@ -16,6 +16,8 @@ A cross‑platform, multi‑purpose CLI tool (Windows/Linux) for working with fi
 - **download**: downloader with progress, resume, size limits, checksum, smart naming
 - **monitor**: live CPU/RAM/disk/network monitoring and processes
 - **unlock**: release file locks and clear restrictive attributes (Windows/Linux)
+- **env**: environment and system snapshot (OS/Python/Onyx, env vars)
+- **hash**: file hashes and duplicate detection (md5/sha1/sha256)
 
 ---
 
@@ -83,6 +85,20 @@ Monitor system resources (live or JSON/CSV stream):
 ```bash
 onyx monitor system --interval 1 --duration 10
 onyx monitor system --interval 1 --duration 10 --output json > metrics.json
+```
+
+Environment / system snapshot:
+```bash
+onyx env                      # human-readable summary
+onyx env --output json > env.json
+onyx env --no-env --output json  # without full env vars
+```
+
+Hashing and duplicate detection:
+```bash
+onyx hash . --algo sha256 --output table
+onyx hash . --algo sha256 --duplicates-only --output json > dups.json
+onyx hash . --algo sha256 --min-size 1MB --extension .py --output csv > hashes.csv
 ```
 
 Unlock a file for deletion/modification:
