@@ -38,8 +38,9 @@ def commits(repo_path: Path, author: str, since: str, until: str, branch: str,
             click.echo("❌ Cannot analyze bare repository", err=True)
             return
         
-        click.echo(f"📊 Analyzing commits in: {repo_path.absolute()}")
-        click.echo(f"🔍 Repository: {repo.git_dir}")
+        if output == 'table':
+            click.echo(f"📊 Analyzing commits in: {repo_path.absolute()}")
+            click.echo(f"🔍 Repository: {repo.git_dir}")
         
         # Get branch info
         if branch:
@@ -52,18 +53,20 @@ def commits(repo_path: Path, author: str, since: str, until: str, branch: str,
             current_branch = repo.active_branch
             branch = current_branch.name
         
-        click.echo(f"🌿 Branch: {branch}")
+        if output == 'table':
+            click.echo(f"🌿 Branch: {branch}")
         
         # Parse date filters
         since_date = _parse_date(since) if since else None
         until_date = _parse_date(until) if until else None
         
-        if since_date:
-            click.echo(f"📅 Since: {since_date.strftime('%Y-%m-%d')}")
-        if until_date:
-            click.echo(f"📅 Until: {until_date.strftime('%Y-%m-%d')}")
-        if author:
-            click.echo(f"👤 Author: {author}")
+        if output == 'table':
+            if since_date:
+                click.echo(f"📅 Since: {since_date.strftime('%Y-%m-%d')}")
+            if until_date:
+                click.echo(f"📅 Until: {until_date.strftime('%Y-%m-%d')}")
+            if author:
+                click.echo(f"👤 Author: {author}")
         
         # Collect commits
         commits_iter = repo.iter_commits(
@@ -75,9 +78,13 @@ def commits(repo_path: Path, author: str, since: str, until: str, branch: str,
         )
         
         commits_data = []
-        with click.progressbar(commits_iter, label='Analyzing commits', 
-                             length=min(limit, 100)) as bar:
-            for commit in bar:
+        if output == 'table':
+            with click.progressbar(commits_iter, label='Analyzing commits', 
+                                 length=min(limit, 100)) as bar:
+                for commit in bar:
+                    commits_data.append(_analyze_commit(commit))
+        else:
+            for commit in commits_iter:
                 commits_data.append(_analyze_commit(commit))
         
         if not commits_data:
@@ -115,7 +122,8 @@ def authors(repo_path: Path, since: str, until: str, min_commits: int, output: s
     try:
         repo = Repo(repo_path)
         
-        click.echo(f"👥 Analyzing authors in: {repo_path.absolute()}")
+        if output == 'table':
+            click.echo(f"👥 Analyzing authors in: {repo_path.absolute()}")
         
         # Parse date filters
         since_date = _parse_date(since) if since else None
@@ -140,8 +148,51 @@ def authors(repo_path: Path, since: str, until: str, min_commits: int, output: s
         
         total_commits = 0
         
-        with click.progressbar(commits_iter, label='Analyzing authors') as bar:
-            for commit in bar:
+        if output == 'table':
+            with click.progressbar(commits_iter, label='Analyzing authors') as bar:
+                iterator = bar
+                for commit in iterator:
+                    author_name = commit.author.name
+                    author_email = commit.author.email
+                    author_key = f"{author_name} <{author_email}>"
+                    
+                    stats = author_stats[author_key]
+                    stats['commits'] += 1
+                    stats['commit_times'].append(commit.committed_datetime)
+                    
+                    # Track first and last commits
+                    if stats['first_commit'] is None or commit.committed_datetime < stats['first_commit']:
+                        stats['first_commit'] = commit.committed_datetime
+                    if stats['last_commit'] is None or commit.committed_datetime > stats['last_commit']:
+                        stats['last_commit'] = commit.committed_datetime
+                    
+                    # Count commits by day of week
+                    day_name = commit.committed_datetime.strftime('%A')
+                    stats['commits_by_day'][day_name] += 1
+                    
+                    # Calculate line changes
+                    try:
+                        if commit.parents:
+                            diffs = commit.parents[0].diff(commit, create_patch=True)
+                            for diff in diffs:
+                                if diff.a_path:
+                                    stats['files_changed'].add(diff.a_path)
+                                if diff.b_path:
+                                    stats['files_changed'].add(diff.b_path)
+                                
+                                # Count line changes
+                                if hasattr(diff, 'diff') and diff.diff:
+                                    diff_text = diff.diff.decode('utf-8', errors='ignore')
+                                    lines_added = diff_text.count('\n+') - 1  # Exclude header
+                                    lines_deleted = diff_text.count('\n-') - 1  # Exclude header
+                                    stats['lines_added'] += max(0, lines_added)
+                                    stats['lines_deleted'] += max(0, lines_deleted)
+                    except Exception:
+                        pass  # Skip if diff calculation fails
+                    
+                    total_commits += 1
+        else:
+            for commit in commits_iter:
                 author_name = commit.author.name
                 author_email = commit.author.email
                 author_key = f"{author_name} <{author_email}>"

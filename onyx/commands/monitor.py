@@ -31,16 +31,17 @@ def system(interval: float, duration: int, output: str, save: str,
           alert_cpu: float, alert_memory: float, alert_disk: float):
     """Monitor overall system resources."""
     
-    click.echo("🖥️ System Resource Monitor")
-    click.echo(f"⏱️ Update interval: {interval}s")
-    
-    if duration:
-        click.echo(f"⏰ Duration: {duration}s")
-    else:
-        click.echo("⏰ Duration: Continuous (Ctrl+C to stop)")
-    
-    click.echo(f"🚨 Alerts: CPU>{alert_cpu}%, Memory>{alert_memory}%, Disk>{alert_disk}%")
-    click.echo()
+    if output == 'live':
+        click.echo("🖥️ System Resource Monitor")
+        click.echo(f"⏱️ Update interval: {interval}s")
+        
+        if duration:
+            click.echo(f"⏰ Duration: {duration}s")
+        else:
+            click.echo("⏰ Duration: Continuous (Ctrl+C to stop)")
+        
+        click.echo(f"🚨 Alerts: CPU>{alert_cpu}%, Memory>{alert_memory}%, Disk>{alert_disk}%")
+        click.echo()
     
     data_points = []
     start_time = time.time()
@@ -106,15 +107,16 @@ def processes(top: int, sort_by: str, filter_user: str, filter_name: str,
              interval: float, output: str, show_threads: bool, show_connections: bool):
     """Monitor running processes."""
     
-    click.echo("📊 Process Monitor")
-    click.echo(f"🔝 Top {top} processes sorted by {sort_by}")
-    
-    if filter_user:
-        click.echo(f"👤 User filter: {filter_user}")
-    if filter_name:
-        click.echo(f"🔍 Name filter: {filter_name}")
-    
-    click.echo()
+    if output == 'live':
+        click.echo("📊 Process Monitor")
+        click.echo(f"🔝 Top {top} processes sorted by {sort_by}")
+        
+        if filter_user:
+            click.echo(f"👤 User filter: {filter_user}")
+        if filter_name:
+            click.echo(f"🔍 Name filter: {filter_name}")
+        
+        click.echo()
     
     try:
         while True:
@@ -142,14 +144,15 @@ def processes(top: int, sort_by: str, filter_user: str, filter_name: str,
 def network(interval: float, interface: str, duration: int, output: str):
     """Monitor network activity."""
     
-    click.echo("🌐 Network Activity Monitor")
-    
-    if interface:
-        click.echo(f"🔗 Interface: {interface}")
-    else:
-        click.echo("🔗 All interfaces")
-    
-    click.echo()
+    if output == 'live':
+        click.echo("🌐 Network Activity Monitor")
+        
+        if interface:
+            click.echo(f"🔗 Interface: {interface}")
+        else:
+            click.echo("🔗 All interfaces")
+        
+        click.echo()
     
     previous_stats = None
     data_points = []
@@ -199,14 +202,15 @@ def network(interval: float, interface: str, duration: int, output: str):
 def disk(path: tuple, interval: float, output: str, show_inodes: bool):
     """Monitor disk usage and I/O."""
     
-    click.echo("💾 Disk Monitor")
-    
-    if path:
-        click.echo(f"📁 Monitoring paths: {', '.join(path)}")
-    else:
-        click.echo("📁 Monitoring all mounted filesystems")
-    
-    click.echo()
+    if output == 'live':
+        click.echo("💾 Disk Monitor")
+        
+        if path:
+            click.echo(f"📁 Monitoring paths: {', '.join(path)}")
+        else:
+            click.echo("📁 Monitoring all mounted filesystems")
+        
+        click.echo()
     
     previous_io_stats = None
     

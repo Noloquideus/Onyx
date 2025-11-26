@@ -47,14 +47,18 @@ Requirements: Python >=3.10,<3.13.
 
 ## Quick Start
 
-Tree (sizes + modified time):
+Tree (sizes + modified time, depth limit, JSON/CSV output):
 ```bash
-onyx tree . --show-time --show-hidden   # use --no-files to hide files
+onyx tree . --show-time --show-hidden             # use --no-files to hide files
+onyx tree . --max-depth 2                         # real depth limit (no deep traversal)
+onyx tree . --output json > tree.json             # machine-readable tree
 ```
 
-Count lines only in Python files:
+Count lines only in Python files (table/JSON/CSV):
 ```bash
 onyx count . --extensions .py --show-files
+onyx count . --extensions .py --output json > count.json
+onyx count . --extensions .py --output csv  > count.csv
 ```
 
 Quick global filename search (uses Everything/locate if available):
@@ -63,9 +67,10 @@ onyx find git.exe             # search across the whole system
 onyx find README.md --path .  # restrict to current folder
 ```
 
-Find text inside files:
+Find text inside files (clean JSON for scripting):
 ```bash
 onyx find content . "TODO" --extension .py -C 2
+onyx find content . "TODO" --extension .py --output json > matches.json
 ```
 
 Download with progress and smart naming:
@@ -74,9 +79,10 @@ onyx download single "https://example.com/file.zip" -o file.zip
 # Google Drive direct: https://drive.google.com/uc?export=download&id=<ID>
 ```
 
-Monitor system resources:
+Monitor system resources (live or JSON/CSV stream):
 ```bash
 onyx monitor system --interval 1 --duration 10
+onyx monitor system --interval 1 --duration 10 --output json > metrics.json
 ```
 
 Unlock a file for deletion/modification:

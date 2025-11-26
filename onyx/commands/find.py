@@ -136,7 +136,8 @@ def files(path: Path, name: str, regex: str, size: str, modified: str, type: str
          output: str, export: str, limit: int):
     """Search for files and directories by various criteria."""
     
-    click.echo(f"🔍 Searching in: {path.absolute()}")
+    if output == 'table':
+        click.echo(f"🔍 Searching in: {path.absolute()}")
     
     # Build search criteria
     criteria = {}
@@ -153,8 +154,9 @@ def files(path: Path, name: str, regex: str, size: str, modified: str, type: str
     
     ignore_patterns = set(ignore) if ignore else set()
     
-    # Display search criteria
-    _display_search_criteria(criteria, type, ignore_patterns, max_depth, show_hidden)
+    # Display search criteria only for human (table) output
+    if output == 'table':
+        _display_search_criteria(criteria, type, ignore_patterns, max_depth, show_hidden)
     
     try:
         results = _search_files(path, criteria, type, ignore_patterns, max_depth, show_hidden, limit)
@@ -163,7 +165,8 @@ def files(path: Path, name: str, regex: str, size: str, modified: str, type: str
             click.echo("❌ No files found matching the criteria.")
             return
         
-        click.echo(f"\n✅ Found {len(results)} items")
+        if output == 'table':
+            click.echo(f"\n✅ Found {len(results)} items")
         
         # Output results
         if output == 'table':
@@ -199,7 +202,8 @@ def content(path: Path, pattern: str, regex: bool, case_sensitive: bool, extensi
            output: str, limit: int):
     """Search for text content within files."""
     
-    click.echo(f"🔍 Searching for: '{pattern}' in {path.absolute()}")
+    if output == 'table':
+        click.echo(f"🔍 Searching for: '{pattern}' in {path.absolute()}")
     
     # Prepare search pattern
     flags = 0 if case_sensitive else re.IGNORECASE
@@ -218,12 +222,13 @@ def content(path: Path, pattern: str, regex: bool, case_sensitive: bool, extensi
     extensions = set(ext if ext.startswith('.') else f'.{ext}' for ext in extension) if extension else None
     ignore_patterns = set(ignore) if ignore else set()
     
-    click.echo(f"🎯 Pattern: {pattern} ({'regex' if regex else 'literal'})")
-    click.echo(f"🔤 Case sensitive: {case_sensitive}")
-    if extensions:
-        click.echo(f"📁 Extensions: {', '.join(sorted(extensions))}")
-    if context > 0:
-        click.echo(f"📝 Context lines: {context}")
+    if output == 'table':
+        click.echo(f"🎯 Pattern: {pattern} ({'regex' if regex else 'literal'})")
+        click.echo(f"🔤 Case sensitive: {case_sensitive}")
+        if extensions:
+            click.echo(f"📁 Extensions: {', '.join(sorted(extensions))}")
+        if context > 0:
+            click.echo(f"📝 Context lines: {context}")
     
     try:
         results = _search_content(path, search_pattern, extensions, ignore_patterns, 
@@ -233,7 +238,8 @@ def content(path: Path, pattern: str, regex: bool, case_sensitive: bool, extensi
             click.echo("❌ No matches found.")
             return
         
-        click.echo(f"\n✅ Found {len(results)} matches in {len(set(r['file'] for r in results))} files")
+        if output == 'table':
+            click.echo(f"\n✅ Found {len(results)} matches in {len(set(r['file'] for r in results))} files")
         
         # Output results
         if output == 'table':

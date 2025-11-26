@@ -107,7 +107,7 @@ def single(url: str, output: Path, resume: bool, chunk_size: int, timeout: int,
 @click.option('--user-agent', '-u', help='Custom User-Agent string')
 @click.option('--verify-ssl', is_flag=True, default=True, help='Verify SSL certificates')
 @click.option('--continue-on-error', is_flag=True, help='Continue downloading other files if one fails')
-@click.option('--output-format', type=click.Choice(['table', 'json']), default='table', help='Output format')
+@click.option('--output', '--output-format', 'output_format', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def batch(urls_file: Path, output_dir: Path, workers: int, resume: bool, timeout: int,
          retries: int, user_agent: str, verify_ssl: bool, continue_on_error: bool,
          output_format: str):
@@ -125,9 +125,10 @@ def batch(urls_file: Path, output_dir: Path, workers: int, resume: bool, timeout
         click.echo("❌ No URLs found in file", err=True)
         return
     
-    click.echo(f"📦 Batch download: {len(urls)} files")
-    click.echo(f"📁 Output directory: {output_dir}")
-    click.echo(f"👥 Workers: {workers}")
+    if output_format == 'table':
+        click.echo(f"📦 Batch download: {len(urls)} files")
+        click.echo(f"📁 Output directory: {output_dir}")
+        click.echo(f"👥 Workers: {workers}")
     
     # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)

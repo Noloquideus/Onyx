@@ -32,11 +32,11 @@ def net():
 def ping(host: str, count: int, timeout: int, interval: float, size: int, 
          continuous: bool, ipv6: bool, output: str):
     """Ping a host to test connectivity."""
-    
-    click.echo(f"🏓 Pinging {host} with {size} bytes of data...")
-    
-    if continuous:
-        click.echo("Press Ctrl+C to stop continuous ping")
+
+    if output == 'table':
+        click.echo(f"🏓 Pinging {host} with {size} bytes of data...")
+        if continuous:
+            click.echo("Press Ctrl+C to stop continuous ping")
     
     results = []
     sent = 0
@@ -141,8 +141,9 @@ def ping(host: str, count: int, timeout: int, interval: float, size: int,
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def traceroute(host: str, max_hops: int, timeout: int, output: str):
     """Trace the route to a destination host."""
-    
-    click.echo(f"🗺️ Tracing route to {host} with maximum {max_hops} hops...")
+
+    if output == 'table':
+        click.echo(f"🗺️ Tracing route to {host} with maximum {max_hops} hops...")
     
     results = []
     
@@ -189,8 +190,9 @@ def traceroute(host: str, max_hops: int, timeout: int, output: str):
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def port(host: str, port: int, timeout: int, protocol: str, output: str):
     """Check if a specific port is open on a host."""
-    
-    click.echo(f"🔌 Checking {protocol.upper()} port {port} on {host}...")
+
+    if output == 'table':
+        click.echo(f"🔌 Checking {protocol.upper()} port {port} on {host}...")
     
     start_time = time.time()
     result = _check_port(host, port, timeout, protocol)

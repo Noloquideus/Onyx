@@ -36,7 +36,8 @@ class TreeDrawer:
             show_files: bool = True,
             show_modified_time: bool = False,
             show_size: bool = False,
-            show_hidden: bool = False
+            show_hidden: bool = False,
+            max_depth: Optional[int] = None,
     ):
         """
         Initializes the TreeDrawer instance with the given options.
@@ -55,6 +56,8 @@ class TreeDrawer:
         self.show_modified_time = show_modified_time
         self.show_size = show_size
         self.show_hidden = show_hidden
+        # Root has depth 0, first level entries depth 1, etc.
+        self.max_depth = max_depth
         colorama.init(autoreset=True)
 
     def _is_ignored(self, name: str) -> bool:
@@ -113,7 +116,7 @@ class TreeDrawer:
         total_size = sum(file.stat().st_size for file in path.rglob('*') if file.is_file())
         return self._get_size(total_size)
 
-    def _tree_structure(self, path: Path, prefix: str = '') -> List[str]:
+    def _tree_structure(self, path: Path, prefix: str = '', current_depth: int = 1) -> List[str]:
         """
         Recursively build the tree structure for the specified directory.
 
@@ -124,6 +127,10 @@ class TreeDrawer:
         Returns:
             List[str]: A list of strings representing the tree structure.
         """
+        # Stop if we reached maximum depth
+        if self.max_depth is not None and current_depth > self.max_depth:
+            return []
+
         entries = [e for e in path.iterdir() if not self._is_ignored(e.name)]
 
         if not self.show_files:
@@ -161,8 +168,9 @@ class TreeDrawer:
             result.append(line)
 
             if entry.is_dir():
-                result.extend(self._tree_structure(entry, prefix + (
-                    self.__SPACE_STRING if i == len(entries) - 1 else self.__WALL_STRING)))
+                # Recurse into children only if depth limit allows
+                child_prefix = prefix + (self.__SPACE_STRING if i == len(entries) - 1 else self.__WALL_STRING)
+                result.extend(self._tree_structure(entry, child_prefix, current_depth=current_depth + 1))
         return result
 
     def draw(self, as_string: bool = True, save_path: Optional[Path] = None) -> str:
@@ -190,7 +198,8 @@ class TreeDrawer:
             if root_size:
                 result[0] += f' {colorama.Fore.WHITE}[Size: {root_size}]'
 
-        result.extend(self._tree_structure(self.path))
+        # Children of root start at depth 1
+        result.extend(self._tree_structure(self.path, current_depth=1))
 
         output = '\n'.join(result)
         if save_path:
@@ -239,16 +248,13 @@ def tree(path: Path, max_depth: int, show_hidden: bool, no_files: bool,
         show_files=not no_files,
         show_modified_time=show_time,
         show_size=show_size,
-        show_hidden=show_hidden
+        show_hidden=show_hidden,
+        max_depth=max_depth,
     )
     
     try:
-        # Generate textual tree once
+        # Generate textual tree once (depth already limited in TreeDrawer)
         tree_text = drawer.draw(as_string=True)
-
-        # Apply depth filter if requested
-        if max_depth is not None:
-            tree_text = _filter_by_depth(tree_text, max_depth)
 
         # Save plain-text tree if requested (no colors)
         if save:
@@ -296,32 +302,6 @@ def tree(path: Path, max_depth: int, show_hidden: bool, no_files: bool,
         click.echo(f"❌ Permission denied: {path}", err=True)
     except Exception as e:
         click.echo(f"❌ Unexpected error: {e}", err=True)
-
-
-def _filter_by_depth(output: str, max_depth: int) -> str:
-    """Filter tree output by maximum depth."""
-    lines = output.split('\n')
-    filtered_lines = []
-    
-    for line in lines:
-        # Count the depth by counting tree characters
-        depth = 0
-        for char in line:
-            if char in ['├', '└', '│']:
-                depth += 1
-            elif char == ' ' and len(line) > 1 and line[1] in ['├', '└', '│']:
-                continue
-            else:
-                break
-        
-        # Adjust depth counting for the tree structure
-        # Root directory has depth 0, first level has depth 1, etc.
-        actual_depth = depth // 3 if depth > 0 else 0
-        
-        if actual_depth <= max_depth:
-            filtered_lines.append(line)
-    
-    return '\n'.join(filtered_lines)
 
 
 def _print_size_summary(directory: Path, ignore_patterns: list, show_hidden: bool):
