@@ -2,6 +2,7 @@
 System monitoring command for resource tracking.
 """
 
+import os
 import time
 import json
 from datetime import datetime, timedelta
@@ -64,9 +65,18 @@ def system(interval: float, duration: int, output: str, save: str,
             current_alerts = _check_alerts(metrics, alert_cpu, alert_memory, alert_disk)
             alerts.extend(current_alerts)
             
-            # Display live output
+            # Display / emit output
             if output == 'live':
                 _display_live_system_metrics(metrics, current_alerts)
+            elif output == 'json':
+                click.echo(json.dumps(metrics, indent=2, default=str))
+            elif output == 'csv':
+                # For CSV we stream flattened rows to stdout
+                flat = _flatten_dict(metrics)
+                # Print header once
+                if not data_points or len(data_points) == 1:
+                    click.echo(','.join(flat.keys()))
+                click.echo(','.join(str(flat[k]) for k in flat.keys()))
             
             time.sleep(interval)
     
@@ -298,6 +308,19 @@ def _collect_system_metrics() -> Dict:
     # Boot time
     boot_time = datetime.fromtimestamp(psutil.boot_time())
     uptime = datetime.now() - boot_time
+
+    # Disk metrics (overall root filesystem) for alerts / summary
+    try:
+        root_usage = psutil.disk_usage(os.path.abspath(os.sep))
+        disk_info = {
+            'total': root_usage.total,
+            'used': root_usage.used,
+            'free': root_usage.free,
+            'percent': root_usage.percent,
+            'mountpoint': os.path.abspath(os.sep),
+        }
+    except Exception:
+        disk_info = None
     
     return {
         'cpu': {
@@ -325,6 +348,7 @@ def _collect_system_metrics() -> Dict:
             'free': swap.free,
             'percent': swap.percent
         },
+        'disk': disk_info,
         'load_avg': load_avg,
         'uptime': str(uptime),
         'boot_time': boot_time.isoformat()
@@ -536,6 +560,18 @@ def _check_alerts(metrics: Dict, cpu_threshold: float,
             'message': f"Memory usage high: {metrics['memory']['percent']:.1f}%",
             'value': metrics['memory']['percent'],
             'threshold': memory_threshold,
+            'timestamp': timestamp
+        })
+
+    # Disk alert (if disk info is available)
+    disk_info = metrics.get('disk')
+    if disk_info and disk_info.get('percent') is not None and disk_info['percent'] > disk_threshold:
+        alerts.append({
+            'type': 'disk',
+            'level': 'warning',
+            'message': f"Disk usage high ({disk_info.get('mountpoint', '/')}): {disk_info['percent']:.1f}%",
+            'value': disk_info['percent'],
+            'threshold': disk_threshold,
             'timestamp': timestamp
         })
     

@@ -215,8 +215,15 @@ class TreeDrawer:
 @click.option('--show-time', '-t', is_flag=True, help='Show last modified time')
 @click.option('--ignore', '-i', multiple=True, help='Patterns to ignore (e.g., "*.pyc", "__pycache__")')
 @click.option('--save', type=click.Path(path_type=Path), help='Save tree to file')
-def tree(path: Path, max_depth: int, show_hidden: bool, no_files: bool, 
-         show_size: bool, show_time: bool, ignore: tuple, save: Path):
+@click.option(
+    '--output',
+    '-o',
+    type=click.Choice(['table', 'json', 'csv']),
+    default='table',
+    help='Output format (table/json/csv)',
+)
+def tree(path: Path, max_depth: int, show_hidden: bool, no_files: bool,
+         show_size: bool, show_time: bool, ignore: tuple, save: Path, output: str):
     """Display directory structure as a tree.
     
     PATH: Directory path to display (default: current directory)
@@ -236,27 +243,51 @@ def tree(path: Path, max_depth: int, show_hidden: bool, no_files: bool,
     )
     
     try:
+        # Generate textual tree once
+        tree_text = drawer.draw(as_string=True)
+
+        # Apply depth filter if requested
+        if max_depth is not None:
+            tree_text = _filter_by_depth(tree_text, max_depth)
+
+        # Save plain-text tree if requested (no colors)
         if save:
-            # Save to file and print to console
-            output = drawer.draw(as_string=True, save_path=save)
-            
-            # If max_depth is specified, we need to filter the output
-            if max_depth is not None:
-                filtered_output = _filter_by_depth(output, max_depth)
-                click.echo(filtered_output)
-            else:
-                click.echo(output)
+            save_path = save / 'tree_structure.txt'
+            with open(save_path, 'w', encoding='utf-8') as file:
+                file.write(tree_text.replace(colorama.Fore.BLUE, '').replace(colorama.Fore.GREEN, '').replace(colorama.Fore.WHITE, ''))
+            click.echo(f'Tree structure saved to {save_path}')
+
+        # Output in requested format
+        if output == 'table':
+            click.echo(tree_text)
         else:
-            # Just print to console
-            if max_depth is not None:
-                output = drawer.draw(as_string=True)
-                filtered_output = _filter_by_depth(output, max_depth)
-                click.echo(filtered_output)
-            else:
-                drawer.draw(as_string=False)
-        
-        # Add summary statistics if show_size is enabled
-        if show_size:
+            # Build simple structured representation: level + name string per line
+            records = []
+            for line in tree_text.split('\n'):
+                stripped = line.lstrip()
+                if not stripped:
+                    continue
+                # Depth is approximated by count of tree characters
+                depth = sum(1 for ch in line if ch in ['├', '└', '│'])
+                # Strip ANSI colors
+                clean = (line
+                         .replace(colorama.Fore.BLUE, '')
+                         .replace(colorama.Fore.GREEN, '')
+                         .replace(colorama.Fore.WHITE, ''))
+                records.append({'depth': depth, 'text': clean})
+
+            if output == 'json':
+                import json as _json
+                click.echo(_json.dumps(records, indent=2, ensure_ascii=False))
+            elif output == 'csv':
+                import csv as _csv
+                import sys as _sys
+                writer = _csv.DictWriter(_sys.stdout, fieldnames=['depth', 'text'])
+                writer.writeheader()
+                writer.writerows(records)
+
+        # Add summary statistics if show_size is enabled (printed in table mode only)
+        if show_size and output == 'table':
             _print_size_summary(path, ignore_patterns, show_hidden)
                 
     except ValueError as e:

@@ -313,9 +313,14 @@ def scan(host: str, start_port: int, end_port: int, timeout: float, protocol: st
 
 @net.command()
 @click.argument('hostname')
-@click.option('--record-type', '-t', type=click.Choice(['A', 'AAAA', 'MX', 'CNAME', 'TXT', 'NS', 'ALL']), 
-              default='A', help='DNS record type to query')
-@click.option('--nameserver', '-n', help='Use specific nameserver')
+@click.option(
+    '--record-type',
+    '-t',
+    type=click.Choice(['A', 'AAAA']),  # limited to what _dns_lookup actually supports
+    default='A',
+    help='DNS record type to query (currently supports A and AAAA)',
+)
+@click.option('--nameserver', '-n', help='Use specific nameserver (not used with socket backend yet)')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def dns(hostname: str, record_type: str, nameserver: str, output: str):
     """Perform DNS lookup for a hostname."""
@@ -597,36 +602,33 @@ def _resolve_hostname(hostname: str) -> Optional[str]:
 def _dns_lookup(hostname: str, record_type: str, nameserver: Optional[str] = None) -> List[Dict]:
     """Perform DNS lookup."""
     results = []
-    
+
     try:
-        if record_type == 'A' or record_type == 'ALL':
+        if record_type == 'A':
             try:
                 ips = socket.gethostbyname_ex(hostname)[2]
                 for ip in ips:
                     results.append({
                         'type': 'A',
-                        'value': ip
+                        'value': ip,
                     })
             except socket.gaierror:
                 pass
-        
-        if record_type == 'AAAA' or record_type == 'ALL':
+
+        elif record_type == 'AAAA':
             try:
                 ipv6_info = socket.getaddrinfo(hostname, None, socket.AF_INET6)
                 for info in ipv6_info:
                     results.append({
                         'type': 'AAAA',
-                        'value': info[4][0]
+                        'value': info[4][0],
                     })
             except socket.gaierror:
                 pass
-        
-        # For other record types, we'd need a DNS library like dnspython
-        # This is a simplified implementation
-        
+
     except Exception as e:
         raise Exception(f"DNS lookup failed: {e}")
-    
+
     return results
 
 

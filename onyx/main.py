@@ -8,7 +8,7 @@ from onyx.commands.unlock import unlock
 
 
 @click.group()
-@click.version_option(version='0.2.2', prog_name="onyx")
+@click.version_option(version='0.3.3', prog_name="onyx")
 def cli():
     """Onyx - Collection of useful CLI utilities."""
     pass

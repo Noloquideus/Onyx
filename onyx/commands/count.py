@@ -234,7 +234,6 @@ def format_size(size_bytes: int) -> str:
 @click.command()
 @click.argument('path', default='.', type=click.Path(exists=True, path_type=Path))
 @click.option('--extensions', '-e', multiple=True, help='File extensions to include (e.g., .py, .js)')
-@click.option('--recursive', '-r', is_flag=True, default=True, help='Search recursively (default: True)')
 @click.option('--exclude-empty', '-x', is_flag=True, help='Exclude empty files from count')
 @click.option('--show-files', '-f', is_flag=True, help='Show individual file line counts')
 @click.option('--exclude-dirs', multiple=True, default=[], help='Directories to exclude (e.g., __pycache__, .git)')
@@ -243,9 +242,17 @@ def format_size(size_bytes: int) -> str:
 @click.option('--algorithm', type=click.Choice(['dfs', 'bfs', 'both']), default='dfs', help='Search algorithm to use')
 @click.option('--top', type=int, default=10, help='Number of top files to show (default: 10)')
 @click.option('--show-hidden', is_flag=True, help='Include hidden files in analysis')
-def count(path: Path, extensions: tuple, recursive: bool, exclude_empty: bool, 
-          show_files: bool, exclude_dirs: tuple, ignore_empty_lines: bool, 
-          ignore_comments: bool, algorithm: str, top: int, show_hidden: bool):
+@click.option(
+    '--output',
+    '-o',
+    type=click.Choice(['table', 'json', 'csv']),
+    default='table',
+    help='Output format (table/json/csv)',
+)
+def count(path: Path, extensions: tuple, exclude_empty: bool,
+          show_files: bool, exclude_dirs: tuple, ignore_empty_lines: bool,
+          ignore_comments: bool, algorithm: str, top: int, show_hidden: bool,
+          output: str):
     """Count lines in files within a directory.
     
     PATH: Directory path to analyze (default: current directory)
@@ -260,24 +267,25 @@ def count(path: Path, extensions: tuple, recursive: bool, exclude_empty: bool,
     
     exclude_dirs = set(exclude_dirs) if exclude_dirs else set()
     
-    click.echo(f"📊 Analyzing: {path.absolute()}")
-    
-    if extensions:
-        click.echo(f"🔍 Extensions: {', '.join(sorted(extensions))}")
-    else:
-        click.echo("🔍 All text files")
-    
-    if exclude_dirs:
-        click.echo(f"🚫 Excluding directories: {', '.join(sorted(exclude_dirs))}")
-    
-    if ignore_empty_lines:
-        click.echo("📝 Ignoring empty lines")
-    
-    if ignore_comments:
-        click.echo("💬 Ignoring comment lines")
-    
-    click.echo(f"🔄 Algorithm: {algorithm.upper()}")
-    click.echo()
+    if output == 'table':
+        click.echo(f"📊 Analyzing: {path.absolute()}")
+
+        if extensions:
+            click.echo(f"🔍 Extensions: {', '.join(sorted(extensions))}")
+        else:
+            click.echo("🔍 All text files")
+
+        if exclude_dirs:
+            click.echo(f"🚫 Excluding directories: {', '.join(sorted(exclude_dirs))}")
+
+        if ignore_empty_lines:
+            click.echo("📝 Ignoring empty lines")
+
+        if ignore_comments:
+            click.echo("💬 Ignoring comment lines")
+
+        click.echo(f"🔄 Algorithm: {algorithm.upper()}")
+        click.echo()
     
     # Create line counter
     counter = LineCounter(
@@ -291,30 +299,46 @@ def count(path: Path, extensions: tuple, recursive: bool, exclude_empty: bool,
     try:
         if algorithm == 'both':
             # Run both algorithms and compare
-            click.echo("🔍 Running DFS (Depth-First Search)...")
             stats_dfs = counter.count_lines_recursive(path, "dfs")
-            
-            click.echo("🔍 Running BFS (Breadth-First Search)...")
             stats_bfs = counter.count_lines_recursive(path, "bfs")
-            
-            _print_statistics(stats_dfs, "DFS", show_files, exclude_empty, top, path)
-            _print_statistics(stats_bfs, "BFS", show_files, exclude_empty, top, path)
-            
-            # Compare results
-            click.echo("\n" + "=" * 60)
-            click.echo("⚖️  ALGORITHM COMPARISON")
-            click.echo("=" * 60)
-            click.echo(f"DFS: {stats_dfs.total_files} files, {stats_dfs.total_lines:,} lines")
-            click.echo(f"BFS: {stats_bfs.total_files} files, {stats_bfs.total_lines:,} lines")
-            
-            if stats_dfs.total_lines == stats_bfs.total_lines:
-                click.echo("✅ Results are identical (as expected!)")
+
+            if output == 'table':
+                click.echo("🔍 Running DFS (Depth-First Search)...")
+                _print_statistics(stats_dfs, "DFS", show_files, exclude_empty, top, path)
+                click.echo("🔍 Running BFS (Breadth-First Search)...")
+                _print_statistics(stats_bfs, "BFS", show_files, exclude_empty, top, path)
+
+                # Compare results
+                click.echo("\n" + "=" * 60)
+                click.echo("⚖️  ALGORITHM COMPARISON")
+                click.echo("=" * 60)
+                click.echo(f"DFS: {stats_dfs.total_files} files, {stats_dfs.total_lines:,} lines")
+                click.echo(f"BFS: {stats_bfs.total_files} files, {stats_bfs.total_lines:,} lines")
+
+                if stats_dfs.total_lines == stats_bfs.total_lines:
+                    click.echo("✅ Results are identical (as expected!)")
+                else:
+                    click.echo("❌ Results differ (possible error)")
             else:
-                click.echo("❌ Results differ (possible error)")
-                
+                # For JSON/CSV в режиме both возвращаем оба набора
+                _emit_structured_stats(
+                    {'DFS': stats_dfs, 'BFS': stats_bfs},
+                    base_path=path,
+                    exclude_empty=exclude_empty,
+                    output=output,
+                )
+
         else:
             stats = counter.count_lines_recursive(path, algorithm)
-            _print_statistics(stats, algorithm.upper(), show_files, exclude_empty, top, path)
+            if output == 'table':
+                _print_statistics(stats, algorithm.upper(), show_files, exclude_empty, top, path)
+            else:
+                _emit_structured_stats(
+                    {algorithm.upper(): stats},
+                    base_path=path,
+                    exclude_empty=exclude_empty,
+                    output=output,
+                )
             
     except FileNotFoundError as e:
         click.echo(f"❌ Error: {e}", err=True)
@@ -334,6 +358,55 @@ def _print_statistics(stats: DirectoryStats, algorithm: str, show_files: bool,
     click.echo("\n" + "=" * 60)
     click.echo(f"📊 RESULTS ({algorithm})")
     click.echo("=" * 60)
+
+
+def _emit_structured_stats(all_stats: Dict[str, DirectoryStats],
+                           base_path: Path,
+                           exclude_empty: bool,
+                           output: str) -> None:
+    """Emit statistics in JSON/CSV formats for scripting usage."""
+    import json as _json
+    import csv as _csv
+    import sys as _sys
+
+    # Prepare structured payload per algorithm
+    payload = {}
+    for algo_name, stats in all_stats.items():
+        files = stats.files
+        if exclude_empty:
+            files = [f for f in files if f.lines > 0]
+
+        files_data = []
+        for f in files:
+            rel_path = str(Path(f.path).relative_to(base_path))
+            files_data.append({
+                'path': rel_path,
+                'lines': f.lines,
+                'size_bytes': f.size_bytes,
+            })
+
+        payload[algo_name] = {
+            'total_files': len(files),
+            'total_lines': sum(f['lines'] for f in files_data),
+            'total_size_bytes': sum(f['size_bytes'] for f in files_data),
+            'files': files_data,
+        }
+
+    if output == 'json':
+        click.echo(_json.dumps(payload, indent=2, ensure_ascii=False))
+    elif output == 'csv':
+        # Flatten into rows: algorithm,path,lines,size_bytes
+        fieldnames = ['algorithm', 'path', 'lines', 'size_bytes']
+        writer = _csv.DictWriter(_sys.stdout, fieldnames=fieldnames)
+        writer.writeheader()
+        for algo_name, stats in payload.items():
+            for f in stats['files']:
+                writer.writerow({
+                    'algorithm': algo_name,
+                    'path': f['path'],
+                    'lines': f['lines'],
+                    'size_bytes': f['size_bytes'],
+                })
     click.echo(f"📁 Total files: {len(files_to_show)}")
     click.echo(f"📄 Total lines: {sum(f.lines for f in files_to_show):,}")
     click.echo(f"💾 Total size: {format_size(sum(f.size_bytes for f in files_to_show))}")
