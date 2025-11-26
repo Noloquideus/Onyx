@@ -5,10 +5,12 @@ Main CLI entry point for Onyx utilities.
 import click
 from onyx.commands import tree, count, find, backup, git, net, download, monitor
 from onyx.commands.unlock import unlock
+from onyx.commands.env import env_cmd
+from onyx.commands.filehash import hash_cmd
 
 
 @click.group()
-@click.version_option(version='0.3.4', prog_name="onyx")
+@click.version_option(version='0.3.5', prog_name="onyx")
 def cli():
     """Onyx - Collection of useful CLI utilities."""
     pass
@@ -24,6 +26,8 @@ cli.add_command(net.net)
 cli.add_command(download.download)
 cli.add_command(monitor.monitor)
 cli.add_command(unlock)
+cli.add_command(env_cmd)
+cli.add_command(hash_cmd)
 
 
 def main():
