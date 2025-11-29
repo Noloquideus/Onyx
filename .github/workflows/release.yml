@@ -25,6 +25,11 @@ jobs:
       run: |
         pip install poetry
       shell: powershell
+
+    - name: Install Inno Setup
+      run: |
+        choco install innosetup --yes
+      shell: powershell
     
     - name: Install dependencies
       run: |
@@ -44,12 +49,19 @@ jobs:
         move dist\onyx.exe dist\onyx-windows.exe
         dir dist\
       shell: powershell
+
+    - name: Build installer (Inno Setup)
+      run: |
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\onyx.iss
+      shell: powershell
     
-    - name: Upload executable
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: onyx-Windows
-        path: dist/onyx-windows.exe
+        path: |
+          dist/onyx-windows.exe
+          dist/onyx-setup.exe
 
   release:
     needs: build

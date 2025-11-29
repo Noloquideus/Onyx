@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.2] - 2025-11-29
+
+### Added
+- Windows installer build via Inno Setup (`onyx-setup.exe`) as part of the GitHub Actions release pipeline.
+- Installer adds Onyx to `PATH` (optional task) so the CLI can be launched easily from any console.
+
 ## [0.5.1] - 2025-11-29
 
 ### Changed
