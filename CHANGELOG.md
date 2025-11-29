@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.6] - 2025-11-29
+
+### Changed
+- Bumped version metadata (PyPI package, CLI banner, installer) to 0.6.6 to keep everything in sync with the latest Windows-only features.
+
 ## [0.5.5] - 2025-11-29
 
 ### Changed
