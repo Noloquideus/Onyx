@@ -172,21 +172,22 @@ def find(pattern: str, root: Path, limit: int, in_file: Path, include_system: bo
                     progress_found=match_bar,
                 )
                 results.extend(root_results)
+        except Exception as e:
+            click.echo(f"❌ Error during search: {e}", err=True)
         finally:
             scan_bar.close()
             if match_bar is not None:
                 match_bar.close()
 
+        if not results:
+            click.echo("❌ No files found matching the criteria.")
+            return
 
-            if not results:
-                click.echo("❌ No files found matching the criteria.")
-                return
-
-            click.echo(f"✅ Found {len(results)} items")
+        click.echo(f"✅ Found {len(results)} items")
         for r in results:
-                click.echo(str(r['path']))
-        except Exception as e:
-        click.echo(f"❌ Error during search: {e}", err=True)
+            click.echo(str(r['path']))
+    except Exception as e:
+        click.echo(f"❌ Error during quick search: {e}", err=True)
 
 
 def _fast_system_search(pattern: str, limit: int) -> Optional[List[str]]:
@@ -548,53 +549,54 @@ def _search_files(
     
     def _matches_criteria(item_path: Path, st, is_file: bool) -> bool:
         """Check if item matches all criteria."""
-            # Name criteria
-            if 'name' in criteria:
-                if not fnmatch.fnmatch(item_path.name, criteria['name']):
-                    return False
-            
-            # Regex criteria
+        # Name criteria
+        if 'name' in criteria:
+            if not fnmatch.fnmatch(item_path.name, criteria['name']):
+                return False
+
+        # Regex criteria
         if regex_pattern is not None:
             if not regex_pattern.search(item_path.name):
-                    return False
-            
-            # Size criteria (only for files)
+                return False
+
+        # Size criteria (only for files)
         if 'size' in criteria and is_file:
-                size_crit = criteria['size']
+            size_crit = criteria['size']
             file_size = st.st_size
-                
-                if size_crit['operator'] == '>':
-                    if file_size <= size_crit['size']:
-                        return False
-                elif size_crit['operator'] == '<':
-                    if file_size >= size_crit['size']:
-                        return False
-                elif size_crit['operator'] == '=':
-                    if abs(file_size - size_crit['size']) > size_crit['size'] * 0.1:  # 10% tolerance
-                        return False
-            
-            # Modified time criteria
-            if 'modified' in criteria:
-                mod_crit = criteria['modified']
-            mod_time = datetime.fromtimestamp(st.st_mtime)
-                
-                if mod_crit['operator'] == '>':
-                    if mod_time <= mod_crit['time']:
-                        return False
-                elif mod_crit['operator'] == '<':
-                    if mod_time >= mod_crit['time']:
-                        return False
-                elif mod_crit['operator'] == '=':
-                    # Same day
-                    if mod_time.date() != mod_crit['time'].date():
-                        return False
-            
-            # Extension criteria (only for files)
-        if 'extensions' in criteria and is_file:
-                if item_path.suffix.lower() not in criteria['extensions']:
+
+            if size_crit['operator'] == '>':
+                if file_size <= size_crit['size']:
                     return False
-            
-            return True
+            elif size_crit['operator'] == '<':
+                if file_size >= size_crit['size']:
+                    return False
+            elif size_crit['operator'] == '=':
+                # 10% tolerance around requested size
+                if abs(file_size - size_crit['size']) > size_crit['size'] * 0.1:
+                    return False
+
+        # Modified time criteria
+        if 'modified' in criteria:
+            mod_crit = criteria['modified']
+            mod_time = datetime.fromtimestamp(st.st_mtime)
+
+            if mod_crit['operator'] == '>':
+                if mod_time <= mod_crit['time']:
+                    return False
+            elif mod_crit['operator'] == '<':
+                if mod_time >= mod_crit['time']:
+                    return False
+            elif mod_crit['operator'] == '=':
+                # Same day
+                if mod_time.date() != mod_crit['time'].date():
+                    return False
+
+        # Extension criteria (only for files)
+        if 'extensions' in criteria and is_file:
+            if item_path.suffix.lower() not in criteria['extensions']:
+                return False
+
+        return True
     
     def _search_recursive(current_path: Path, depth: int):
         """Recursively search directories."""

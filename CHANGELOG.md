@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.4] - 2025-11-29
+
+### Fixed
+- Multiple indentation and syntax issues inside `find` that caused `SyntaxError` / `IndentationError` when importing the command.
+- GitHub release workflow now attaches both the portable exe and the Windows installer to each release.
+
 ## [0.5.3] - 2025-11-29
 
 ### Fixed
