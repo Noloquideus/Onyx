@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Dict, Any
 
-import click
+import rich_click as click
 
 from onyx import __version__ as ONYX_VERSION
 
@@ -27,10 +27,13 @@ from onyx import __version__ as ONYX_VERSION
     help='Do not include full environment variables (only summary)',
 )
 def env_cmd(output: str, no_env: bool) -> None:
-    """
-    Show a snapshot of system / Python / Onyx environment.
+    """Show a snapshot of system / Python / Onyx environment.
 
     Useful for bug reports and diagnostics.
+
+    Examples:
+      onyx env
+      onyx env --output json --no-env
     """
 
     info = _collect_env_info(include_env=not no_env)
