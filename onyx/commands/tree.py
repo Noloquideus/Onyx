@@ -7,7 +7,7 @@ from typing import List, Optional
 import fnmatch
 import colorama
 from datetime import datetime
-import click
+import rich_click as click
 
 
 class TreeDrawer:
@@ -218,12 +218,12 @@ class TreeDrawer:
 @click.command()
 @click.argument('path', default='.', type=click.Path(exists=True, path_type=Path))
 @click.option('--max-depth', '-d', default=None, type=int, help='Maximum depth to display')
-@click.option('--show-hidden', '-a', is_flag=True, help='Show hidden files and directories')
-@click.option('--no-files', is_flag=True, help='Show only directories, no files')
-@click.option('--show-size', '-s', is_flag=True, help='Show file and directory sizes')
+@click.option('--show-hidden', '-a', is_flag=True, help='Include hidden files and directories')
+@click.option('--no-files', is_flag=True, help='Only show directories (skip files)')
+@click.option('--show-size', '-s', is_flag=True, help='Show sizes for files and directories')
 @click.option('--show-time', '-t', is_flag=True, help='Show last modified time')
-@click.option('--ignore', '-i', multiple=True, help='Patterns to ignore (e.g., "*.pyc", "__pycache__")')
-@click.option('--save', type=click.Path(path_type=Path), help='Save tree to file')
+@click.option('--ignore', '-i', multiple=True, help='Ignore patterns (e.g. "*.pyc", "__pycache__")')
+@click.option('--save', type=click.Path(path_type=Path), help='Save plain text tree to a file')
 @click.option(
     '--output',
     '-o',
@@ -233,9 +233,15 @@ class TreeDrawer:
 )
 def tree(path: Path, max_depth: int, show_hidden: bool, no_files: bool,
          show_size: bool, show_time: bool, ignore: tuple, save: Path, output: str):
-    """Display directory structure as a tree.
-    
-    PATH: Directory path to display (default: current directory)
+    """Display a directory as a visual tree.
+
+    PATH is the root directory to display (defaults to the current directory).
+
+    Examples:
+      onyx tree
+      onyx tree src --max-depth 2
+      onyx tree . --no-files --show-size
+      onyx tree . -i .git -i __pycache__ --save ./out
     """
     
     # Convert ignore tuple to list
