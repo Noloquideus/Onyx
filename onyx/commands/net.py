@@ -10,14 +10,13 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
-import click
+import rich_click as click
 from tqdm import tqdm
 
 
 @click.group()
 def net():
-    """Network connectivity and diagnostic tools."""
-    pass
+    """Network connectivity and diagnostic tools (ping, traceroute, ports, DNS)."""
 
 
 @net.command()
@@ -31,7 +30,14 @@ def net():
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def ping(host: str, count: int, timeout: int, interval: float, size: int, 
          continuous: bool, ipv6: bool, output: str):
-    """Ping a host to test connectivity."""
+    """Ping a host to test basic network connectivity.
+
+    Examples:
+      onyx net ping google.com
+      onyx net ping 8.8.8.8 --count 10 --timeout 2
+      onyx net ping example.com --continuous
+      onyx net ping example.com --ipv6 --output json
+    """
 
     if output == 'table':
         click.echo(f"🏓 Pinging {host} with {size} bytes of data...")
@@ -140,7 +146,12 @@ def ping(host: str, count: int, timeout: int, interval: float, size: int,
 @click.option('--timeout', '-t', type=int, default=5, help='Timeout per hop in seconds')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def traceroute(host: str, max_hops: int, timeout: int, output: str):
-    """Trace the route to a destination host."""
+    """Trace the route (hops) to a destination host.
+
+    Examples:
+      onyx net traceroute google.com
+      onyx net traceroute 1.1.1.1 --max-hops 20 --timeout 3
+    """
 
     if output == 'table':
         click.echo(f"🗺️ Tracing route to {host} with maximum {max_hops} hops...")
@@ -189,7 +200,12 @@ def traceroute(host: str, max_hops: int, timeout: int, output: str):
 @click.option('--protocol', '-p', type=click.Choice(['tcp', 'udp']), default='tcp', help='Protocol to use')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def port(host: str, port: int, timeout: int, protocol: str, output: str):
-    """Check if a specific port is open on a host."""
+    """Check if a specific TCP/UDP port is open on a host.
+
+    Examples:
+      onyx net port localhost 5432
+      onyx net port example.com 443 --protocol tcp --output json
+    """
 
     if output == 'table':
         click.echo(f"🔌 Checking {protocol.upper()} port {port} on {host}...")
@@ -231,7 +247,13 @@ def port(host: str, port: int, timeout: int, protocol: str, output: str):
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def scan(host: str, start_port: int, end_port: int, timeout: float, protocol: str,
          threads: int, common_ports: bool, output: str):
-    """Scan a range of ports on a host."""
+    """Scan a range of ports on a host.
+
+    Examples:
+      onyx net scan localhost --start-port 1 --end-port 1024
+      onyx net scan example.com --common-ports
+      onyx net scan 192.168.0.1 -s 20 -e 200 --output json
+    """
     
     if common_ports:
         ports_to_scan = _get_common_ports()
@@ -325,7 +347,12 @@ def scan(host: str, start_port: int, end_port: int, timeout: float, protocol: st
 @click.option('--nameserver', '-n', help='Use specific nameserver (not used with socket backend yet)')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def dns(hostname: str, record_type: str, nameserver: str, output: str):
-    """Perform DNS lookup for a hostname."""
+    """Perform a simple DNS lookup for a hostname.
+
+    Examples:
+      onyx net dns example.com
+      onyx net dns example.com --record-type AAAA --output json
+    """
     
     click.echo(f"🔍 DNS lookup for {hostname} (type: {record_type})")
     
@@ -362,7 +389,12 @@ def dns(hostname: str, record_type: str, nameserver: str, output: str):
 @click.argument('ip_or_domain')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def whois(ip_or_domain: str, output: str):
-    """Get WHOIS information for an IP address or domain."""
+    """Get WHOIS information for an IP address or domain (where available).
+
+    Examples:
+      onyx net whois example.com
+      onyx net whois 8.8.8.8 --output json
+    """
     
     click.echo(f"🔍 WHOIS lookup for {ip_or_domain}")
     
