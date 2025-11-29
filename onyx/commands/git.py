@@ -8,15 +8,18 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import json
-import click
+import rich_click as click
 from git import Repo, InvalidGitRepositoryError
 from git.objects import Commit
 
 
 @click.group()
 def git():
-    """Git repository analytics and statistics."""
-    pass
+    """Git repository analytics and statistics.
+
+    All subcommands expect [bold]REPO_PATH[/bold] to point to a Git repository
+    (defaults to the current directory).
+    """
 
 
 @git.command()
@@ -29,7 +32,14 @@ def git():
 @click.option('--limit', '-l', type=int, default=1000, help='Limit number of commits to analyze')
 def commits(repo_path: Path, author: str, since: str, until: str, branch: str, 
            output: str, limit: int):
-    """Analyze commit statistics and patterns."""
+    """Analyze commit statistics and patterns.
+
+    Examples:
+      onyx git commits .
+      onyx git commits . --author "Alice"
+      onyx git commits . --since "2024-01-01" --until "2024-06-01"
+      onyx git commits . --branch main --output json --limit 500
+    """
     
     try:
         repo = Repo(repo_path)
@@ -117,7 +127,13 @@ def commits(repo_path: Path, author: str, since: str, until: str, branch: str,
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 @click.option('--top', '-t', type=int, default=10, help='Show top N authors')
 def authors(repo_path: Path, since: str, until: str, min_commits: int, output: str, top: int):
-    """Analyze author statistics and contributions."""
+    """Analyze author statistics and contributions.
+
+    Examples:
+      onyx git authors .
+      onyx git authors . --since "1 year ago" --top 5
+      onyx git authors . --min-commits 10 --output json
+    """
     
     try:
         repo = Repo(repo_path)
@@ -282,7 +298,13 @@ def authors(repo_path: Path, since: str, until: str, min_commits: int, output: s
 @click.option('--top', '-t', type=int, default=20, help='Show top N files')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def files(repo_path: Path, since: str, until: str, file_pattern: str, top: int, output: str):
-    """Analyze file change statistics."""
+    """Analyze file change statistics (which files change most). 
+
+    Examples:
+      onyx git files .
+      onyx git files . --file-pattern "*.py" --top 20
+      onyx git files . --since "2024-01-01" --output json
+    """
     
     try:
         repo = Repo(repo_path)
@@ -386,7 +408,12 @@ def files(repo_path: Path, since: str, until: str, file_pattern: str, top: int, 
 @click.option('--current-only', '-c', is_flag=True, help='Check only current working tree')
 @click.option('--output', '-o', type=click.Choice(['table', 'json']), default='table', help='Output format')
 def large_files(repo_path: Path, threshold: str, current_only: bool, output: str):
-    """Find large files in repository history."""
+    """Find large files in repository history or working tree.
+
+    Examples:
+      onyx git large-files . --threshold 50MB
+      onyx git large-files . --threshold 5MB --current-only --output json
+    """
     
     try:
         repo = Repo(repo_path)
@@ -464,7 +491,13 @@ def large_files(repo_path: Path, threshold: str, current_only: bool, output: str
 @click.option('--author', '-a', help='Filter by specific author')
 @click.option('--output', '-o', type=click.Choice(['table', 'json', 'chart']), default='table', help='Output format')
 def activity(repo_path: Path, period: str, last: int, author: str, output: str):
-    """Show repository activity over time."""
+    """Show repository activity over time (commits, lines, files changed).
+
+    Examples:
+      onyx git activity .
+      onyx git activity . --period month --last 6
+      onyx git activity . --author "Alice" --output chart
+    """
     
     try:
         repo = Repo(repo_path)
