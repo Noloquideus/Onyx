@@ -16,7 +16,8 @@ DefaultGroupName=Onyx
 DisableDirPage=no
 DisableProgramGroupPage=yes
 OutputBaseFilename=onyx-setup
-OutputDir=dist
+; Place the installer next to the dist\ folder at repo root
+OutputDir=..\dist
 Compression=lzma
 SolidCompression=yes
 
@@ -27,7 +28,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "addtopath"; Description: "Add Onyx install directory to PATH"; Flags: unchecked
 
 [Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+; exe is built into repo-root\dist, script lives in installer\
+Source: "..\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Onyx CLI"; Filename: "{app}\{#MyAppExeName}"

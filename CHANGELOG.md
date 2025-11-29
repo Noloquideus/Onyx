@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.3] - 2025-11-29
+
+### Fixed
+- Inno Setup script now correctly points to the PyInstaller output (`..\dist\onyx-windows.exe`), so the installer builds successfully in CI.
+
 ## [0.5.2] - 2025-11-29
 
 ### Added
