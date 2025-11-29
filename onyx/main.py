@@ -1,19 +1,53 @@
 """
 Main CLI entry point for Onyx utilities.
+
+This module wires all subcommands together and configures `rich-click`
+for nicer, colorized help output.
 """
 
-import click
+import rich_click as click
+
 from onyx.commands import tree, count, find, backup, git, net, download, monitor
 from onyx.commands.unlock import unlock
 from onyx.commands.env import env_cmd
 from onyx.commands.filehash import hash_cmd
 
 
+# Global rich-click configuration
+click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.STYLE_HELPTEXT = "dim"
+click.rich_click.STYLE_OPTION = "bold cyan"
+click.rich_click.STYLE_SWITCH = "bold green"
+click.rich_click.STYLE_METAVAR = "magenta"
+click.rich_click.STYLE_USAGE = "bold"
+click.rich_click.STYLE_HEADER_TEXT = "bold"
+click.rich_click.STYLE_FOOTER_TEXT = "dim"
+click.rich_click.MAX_WIDTH = 100
+
+
 @click.group()
-@click.version_option(version='0.3.5', prog_name="onyx")
+@click.version_option(version="0.4.0", prog_name="onyx")
 def cli():
-    """Onyx - Collection of useful CLI utilities."""
-    pass
+    """[bold]Onyx[/bold] — a toolbox of everyday CLI utilities.
+
+    The top‑level command simply groups subcommands such as:
+
+    - [cyan]tree[/cyan] — pretty directory tree
+    - [cyan]find[/cyan] — fast file & content search
+    - [cyan]count[/cyan] — line counter for codebases
+    - [cyan]backup[/cyan] — incremental and ad‑hoc backups
+    - [cyan]git[/cyan] — Git analytics and history stats
+    - [cyan]net[/cyan] — networking helpers (ping, traceroute, ports)
+    - [cyan]monitor[/cyan] — system and process monitoring
+
+    Examples:
+      [dim]# Show all available subcommands[/dim]
+      onyx --help
+
+      [dim]# Get help for a specific tool[/dim]
+      onyx find --help
+      onyx backup create --help
+    """
 
 
 # Register commands
