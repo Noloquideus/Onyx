@@ -11,73 +11,33 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: [3.11]
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.11
     
-    - name: Install Poetry (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      shell: bash
-    
-    - name: Install Poetry (Windows)
-      if: runner.os == 'Windows'
+    - name: Install Poetry
       run: |
         pip install poetry
       shell: powershell
     
-    - name: Install dependencies (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        poetry lock
-        poetry install
-      shell: bash
-    
-    - name: Install dependencies (Windows)
-      if: runner.os == 'Windows'
+    - name: Install dependencies
       run: |
         poetry lock
         poetry install
       shell: powershell
     
-    - name: Install PyInstaller (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        poetry run pip install pyinstaller
-      shell: bash
-    
-    - name: Install PyInstaller (Windows)
-      if: runner.os == 'Windows'
+    - name: Install PyInstaller
       run: |
         poetry run pip install pyinstaller
       shell: powershell
-    
-    - name: Build executable (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        poetry run pyinstaller --onefile --name onyx onyx/main.py
-        ls -la dist/
-        mv dist/onyx dist/onyx-linux
-        ls -la dist/
-      shell: bash
     
     - name: Build executable (Windows)
-      if: runner.os == 'Windows'
       run: |
         poetry run pyinstaller --onefile --name onyx onyx/main.py
         dir dist\
@@ -88,8 +48,8 @@ jobs:
     - name: Upload executable
       uses: actions/upload-artifact@v4
       with:
-        name: onyx-${{ runner.os }}
-        path: dist/onyx*
+        name: onyx-Windows
+        path: dist/onyx-windows.exe
 
   release:
     needs: build
@@ -111,14 +71,12 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          onyx-Linux/onyx-linux
           onyx-Windows/onyx-windows.exe
         body: |
           ## 🎉 Onyx CLI v${{ github.ref_name }}
           
                      ### 📦 Downloads
            - **Windows**: `onyx-windows.exe` - Запустите в командной строке
-           - **Linux**: `onyx-linux` - Сделайте исполняемым: `chmod +x onyx-linux`
           
           ### 🚀 Features
           - 🌳 **tree**: Отображение структуры папок с размерами и временем

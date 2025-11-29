@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2025-11-29
+
+### Added
+- New `onyx services` command for managing Windows services (list/start/stop/restart) via PowerShell.
+
+### Changed
+- Project is now Windows‑only in terms of binaries and release workflow (GitHub Actions builds and publishes only `onyx-windows.exe`).
+- README updated to reflect the Windows focus and to document `onyx services` usage.
+
 ## [0.4.0] - 2025-11-29
 
 ### Added
@@ -16,5 +25,4 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Minor robustness improvements across commands (error handling, messaging, and option help texts).
-
 

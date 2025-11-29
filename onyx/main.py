@@ -8,6 +8,7 @@ for nicer, colorized help output.
 import rich_click as click
 
 from onyx.commands import tree, count, find, backup, git, net, download, monitor
+from onyx.commands import services
 from onyx.commands.unlock import unlock
 from onyx.commands.env import env_cmd
 from onyx.commands.filehash import hash_cmd
@@ -26,7 +27,7 @@ click.rich_click.MAX_WIDTH = 100
 
 
 @click.group()
-@click.version_option(version="0.4.0", prog_name="onyx")
+@click.version_option(version="0.5.0", prog_name="onyx")
 def cli():
     """[bold]Onyx[/bold] — a toolbox of everyday CLI utilities.
 
@@ -39,6 +40,7 @@ def cli():
     - [cyan]git[/cyan] — Git analytics and history stats
     - [cyan]net[/cyan] — networking helpers (ping, traceroute, ports)
     - [cyan]monitor[/cyan] — system and process monitoring
+    - [cyan]services[/cyan] — Windows services management
 
     Examples:
       [dim]# Show all available subcommands[/dim]
@@ -59,6 +61,7 @@ cli.add_command(git.git)
 cli.add_command(net.net)
 cli.add_command(download.download)
 cli.add_command(monitor.monitor)
+cli.add_command(services.services)
 cli.add_command(unlock)
 cli.add_command(env_cmd)
 cli.add_command(hash_cmd)

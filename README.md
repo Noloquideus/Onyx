@@ -4,18 +4,19 @@
 
 ## Onyx CLI
 
-A cross‑platform, multi‑purpose CLI tool (Windows/Linux) for working with files, networking, and repositories. Distributed as ready‑to‑run executables via GitHub Releases.
+A Windows‑first CLI toolbox for working with files, services, networking, and repositories. Distributed as a ready‑to‑run Windows executable via GitHub Releases.
 
 ### Features
 - **tree**: advanced directory tree (filters, sizes, dates, hidden files, total size summary)
 - **count**: line counter (by extensions, ignore patterns, BFS/DFS, detailed stats)
-- **find**: quick global filename search and advanced file/content search (globs, regex, context); uses Everything/locate when available
+- **find**: quick global filename search and advanced file/content search (globs, regex, context); uses Everything when available
 - **backup**: simple directory backups (archiving, excludes)
 - **git**: repository analytics (commits, authors, files, activity)
 - **net**: connectivity and diagnostics (ping, traceroute, ports, ip)
 - **download**: downloader with progress, resume, size limits, checksum, smart naming
 - **monitor**: live CPU/RAM/disk/network monitoring and processes
-- **unlock**: release file locks and clear restrictive attributes (Windows/Linux)
+- **services**: list/start/stop/restart Windows services from the CLI
+- **unlock**: release file locks and clear restrictive attributes (Windows)
 - **env**: environment and system snapshot (OS/Python/Onyx, env vars)
 - **hash**: file hashes and duplicate detection (md5/sha1/sha256)
 
@@ -23,14 +24,9 @@ A cross‑platform, multi‑purpose CLI tool (Windows/Linux) for working with fi
 
 ## Installation
 
-Recommended: download a prebuilt binary from the [Releases](https://github.com/Noloquideus/onyx/releases) page.
+Recommended: download a prebuilt Windows binary from the [Releases](https://github.com/Noloquideus/onyx/releases) page.
 
 - Windows: `onyx-windows.exe` — run from PowerShell or Command Prompt
-- Linux: `onyx-linux` — make it executable and run
-  ```bash
-  chmod +x onyx-linux
-  ./onyx-linux --help
-  ```
 
 Alternative for development (Poetry):
 ```bash
@@ -38,10 +34,10 @@ poetry install
 poetry run onyx --help
 ```
 
-Local build (PyInstaller):
+Local build (PyInstaller, Windows):
 ```bash
 poetry run pyinstaller --onefile --name onyx onyx/main.py
-# dist/onyx  (Linux)  or  dist/onyx.exe (Windows)
+# dist/onyx.exe (Windows)
 ```
 Requirements: Python >=3.10,<3.13.
 
@@ -87,6 +83,14 @@ onyx monitor system --interval 1 --duration 10
 onyx monitor system --interval 1 --duration 10 --output json > metrics.json
 ```
 
+Manage Windows services:
+```bash
+onyx services list                       # all services
+onyx services list --status Running      # only running services
+onyx services start "Spooler"            # start a service
+onyx services restart "Spooler"
+```
+
 Environment / system snapshot:
 ```bash
 onyx env                      # human-readable summary
@@ -119,6 +123,7 @@ onyx git --help
 onyx net --help
 onyx download --help
 onyx monitor --help
+onyx services --help
 onyx unlock --help
 ```
 
