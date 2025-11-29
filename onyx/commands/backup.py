@@ -12,14 +12,13 @@ from pathlib import Path
 from typing import List, Dict, Set, Optional
 from datetime import datetime
 import fnmatch
-import click
+import rich_click as click
 from tqdm import tqdm
 
 
 @click.group()
 def backup():
-    """Create and manage backups with incremental support."""
-    pass
+    """Create and manage backups (full and incremental)."""
 
 
 @backup.command()
@@ -34,7 +33,13 @@ def backup():
 @click.option('--follow-symlinks', is_flag=True, help='Follow symbolic links')
 def create(source: Path, destination: Path, format: str, compression: str, exclude: tuple,
           include_hidden: bool, dry_run: bool, verbose: bool, follow_symlinks: bool):
-    """Create a new backup archive."""
+    """Create a new backup archive from a directory or single file.
+
+    Examples:
+      onyx backup create ./project backups/project.zip
+      onyx backup create ./data backups/data.tar.gz --compression best
+      onyx backup create ./src backups/src.zip -e .git -e __pycache__ --dry-run
+    """
     
     click.echo(f"📦 Creating backup from: {source}")
     click.echo(f"🎯 Destination: {destination}")
@@ -130,7 +135,16 @@ def create(source: Path, destination: Path, format: str, compression: str, exclu
 @click.option('--verbose', '-v', is_flag=True, help='Show detailed progress')
 def incremental(source: Path, backup_dir: Path, name: str, exclude: tuple, include_hidden: bool,
                max_backups: int, force_full: bool, verbose: bool):
-    """Create incremental backup with change tracking."""
+    """Create an incremental backup set with change tracking.
+
+    The first run creates a full backup, subsequent runs store only
+    changed / new / deleted files and maintain a manifest.
+
+    Examples:
+      onyx backup incremental ./project ./backups
+      onyx backup incremental ./data ./backups --name data-set --max-backups 5
+      onyx backup incremental ./project ./backups -e .git -e __pycache__
+    """
     
     backup_name = name or source.name
     backup_set_dir = backup_dir / backup_name
@@ -228,7 +242,12 @@ def incremental(source: Path, backup_dir: Path, name: str, exclude: tuple, inclu
 @click.option('--overwrite', '-o', is_flag=True, help='Overwrite existing files')
 @click.option('--verbose', '-v', is_flag=True, help='Show detailed progress')
 def restore(archive: Path, destination: Path, overwrite: bool, verbose: bool):
-    """Restore files from a backup archive."""
+    """Restore files from a backup archive into a directory.
+
+    Examples:
+      onyx backup restore backups/project.zip ./restored
+      onyx backup restore backups/data.tar.gz ./data-restored --overwrite
+    """
     
     click.echo(f"📦 Restoring from: {archive}")
     click.echo(f"🎯 Destination: {destination}")
@@ -255,7 +274,11 @@ def restore(archive: Path, destination: Path, overwrite: bool, verbose: bool):
 @backup.command()
 @click.argument('backup_dir', type=click.Path(exists=True, path_type=Path))
 def list(backup_dir: Path):
-    """List all backups in a directory."""
+    """List all backup archives and basic metadata in a directory.
+
+    Examples:
+      onyx backup list ./backups
+    """
     
     click.echo(f"📋 Backups in: {backup_dir}")
     click.echo("=" * 60)
