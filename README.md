@@ -26,8 +26,8 @@ A Windows‑first CLI toolbox for working with files, services, networking, and 
 
 Recommended: download a prebuilt Windows binary or installer from the [Releases](https://github.com/Noloquideus/onyx/releases) page.
 
-- `onyx-setup.exe` — Windows installer (choose install path, optional PATH integration)
-- `onyx-windows.exe` — portable single-file binary (run from PowerShell or Command Prompt)
+- `onyx-setup.exe` — Windows installer (installs `onyx.exe`, lets you choose install path, optional PATH integration)
+- `onyx-windows.exe` — portable single-file binary (run as `.\onyx-windows.exe` from PowerShell or Command Prompt)
 
 Alternative for development (Poetry):
 ```bash

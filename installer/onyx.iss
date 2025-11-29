@@ -1,10 +1,13 @@
 ; Inno Setup script for Onyx CLI Windows installer
-; This script expects that PyInstaller has already produced:
-;   dist\onyx-windows.exe
+; Expects that PyInstaller has already produced:
+;   dist\onyx-windows.exe (portable CLI)
 
 #define MyAppName "Onyx CLI"
-#define MyAppVersion "0.5.1"
-#define MyAppExeName "onyx-windows.exe"
+#define MyAppVersion "0.5.4"
+; Portable exe name in dist\
+#define MyPortableExe "onyx-windows.exe"
+; Installed exe name in {app} (what users will call from PATH)
+#define MyAppExeName "onyx.exe"
 
 [Setup]
 AppId={{B9F7D9B4-7C9C-4D3A-9A9D-ONYX-CLI}}
@@ -28,8 +31,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "addtopath"; Description: "Add Onyx install directory to PATH"; Flags: unchecked
 
 [Files]
-; exe is built into repo-root\dist, script lives in installer\
-Source: "..\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+; Copy portable exe from repo-root\dist to {app} as onyx.exe
+Source: "..\dist\{#MyPortableExe}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Onyx CLI"; Filename: "{app}\{#MyAppExeName}"
@@ -41,5 +44,4 @@ Root: HKCU; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; \
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch Onyx CLI"; Flags: nowait postinstall skipifsilent
-
 

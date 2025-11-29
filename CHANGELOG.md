@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.5] - 2025-11-29
+
+### Changed
+- Windows installer now installs the CLI as `onyx.exe` into `C:\Program Files (x86)\Onyx` so the `onyx` command works when the install directory is on PATH.
+- README installation instructions clarified for installer vs portable binary.
+
 ## [0.5.4] - 2025-11-29
 
 ### Fixed
