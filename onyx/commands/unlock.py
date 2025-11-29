@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Tuple
 
-import click
+import rich_click as click
 import psutil
 
 
@@ -109,9 +109,14 @@ def _terminate_process(pid: int, timeout: float) -> bool:
 def unlock(path: Path, force: bool, timeout: float, recursive: bool) -> None:
     """Unlock a file or directory so it can be modified or deleted.
 
-    - Clears read-only/hidden/system (Windows) or immutable (Linux) attributes
-    - Detects processes holding file handles
-    - Optionally terminates them with --force
+    The command clears restrictive attributes (read‑only / hidden / system
+    on Windows, immutable flags on Linux) and optionally terminates any
+    processes that still keep the path open.
+
+    Examples:
+      onyx unlock C:/path/to/file.txt
+      onyx unlock ./locked-dir --recursive
+      onyx unlock ./in-use.log --force --timeout 5
     """
 
     target = _normalize(path)
