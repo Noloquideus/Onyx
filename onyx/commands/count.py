@@ -7,7 +7,7 @@ from collections import deque
 from typing import List, Tuple, Dict, Any
 from dataclasses import dataclass
 import fnmatch
-import click
+import rich_click as click
 
 
 @dataclass
@@ -233,15 +233,15 @@ def format_size(size_bytes: int) -> str:
 
 @click.command()
 @click.argument('path', default='.', type=click.Path(exists=True, path_type=Path))
-@click.option('--extensions', '-e', multiple=True, help='File extensions to include (e.g., .py, .js)')
-@click.option('--exclude-empty', '-x', is_flag=True, help='Exclude empty files from count')
-@click.option('--show-files', '-f', is_flag=True, help='Show individual file line counts')
-@click.option('--exclude-dirs', multiple=True, default=[], help='Directories to exclude (e.g., __pycache__, .git)')
-@click.option('--ignore-empty-lines', is_flag=True, help='Ignore empty lines in count')
-@click.option('--ignore-comments', is_flag=True, help='Ignore comment lines (lines starting with #)')
-@click.option('--algorithm', type=click.Choice(['dfs', 'bfs', 'both']), default='dfs', help='Search algorithm to use')
-@click.option('--top', type=int, default=10, help='Number of top files to show (default: 10)')
-@click.option('--show-hidden', is_flag=True, help='Include hidden files in analysis')
+@click.option('--extensions', '-e', multiple=True, help='Only include files with these extensions (e.g. .py, .js)')
+@click.option('--exclude-empty', '-x', is_flag=True, help='Exclude files with 0 counted lines from statistics')
+@click.option('--show-files', '-f', is_flag=True, help='Print per-file line counts in addition to the summary')
+@click.option('--exclude-dirs', multiple=True, default=[], help='Directories to exclude (e.g. __pycache__, .git)')
+@click.option('--ignore-empty-lines', is_flag=True, help='Skip empty lines when counting')
+@click.option('--ignore-comments', is_flag=True, help='Skip comment lines starting with "#"')
+@click.option('--algorithm', type=click.Choice(['dfs', 'bfs', 'both']), default='dfs', help='Traversal algorithm to use')
+@click.option('--top', type=int, default=10, help='Number of top files by line count to display')
+@click.option('--show-hidden', is_flag=True, help='Include hidden files in the analysis')
 @click.option(
     '--output',
     '-o',
@@ -253,9 +253,15 @@ def count(path: Path, extensions: tuple, exclude_empty: bool,
           show_files: bool, exclude_dirs: tuple, ignore_empty_lines: bool,
           ignore_comments: bool, algorithm: str, top: int, show_hidden: bool,
           output: str):
-    """Count lines in files within a directory.
-    
-    PATH: Directory path to analyze (default: current directory)
+    """Count lines in files under a directory.
+
+    PATH is the root directory to analyze (defaults to current directory).
+
+    Examples:
+      onyx count .
+      onyx count src --extensions .py .js --ignore-empty-lines --ignore-comments
+      onyx count . --exclude-dirs .git __pycache__ --show-files
+      onyx count . --algorithm both --output json
     """
     
     # Convert extensions to a set for faster lookup
