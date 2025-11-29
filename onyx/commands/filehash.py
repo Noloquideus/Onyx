@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 import hashlib
 import fnmatch
 
-import click
+import rich_click as click
 
 
 class FileHashInfo:
