@@ -131,7 +131,7 @@ onyx unlock --help
 
 ## Updates & Releases
 - New versions are published automatically in [Releases](https://github.com/Noloquideus/onyx/releases)
-- To update, download the latest executable for your OS
+- To update, download the latest Windows executable
 
 ## Changelog
 - See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes and version history.

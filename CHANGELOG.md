@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2025-11-29
+
+### Changed
+- GitHub Actions release notes are now fully in English and reference the Windows-only binary and core commands.
+- Fixed release title to use the tag name directly (e.g. "Onyx CLI v0.5.1" instead of "vv0.5.1").
+
 ## [0.5.0] - 2025-11-29
 
 ### Added

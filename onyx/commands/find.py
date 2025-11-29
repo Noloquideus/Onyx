@@ -64,7 +64,7 @@ def find(pattern: str, root: Path, limit: int, in_file: Path, include_system: bo
 
     Examples:
       onyx find resume
-      onyx find "resume.*" -L 10
+      onyx find "resume.*" -l 10
       onyx find report -p C:/Projects
       onyx find error --in-file C:/logs/app.log
     """
@@ -92,7 +92,7 @@ def find(pattern: str, root: Path, limit: int, in_file: Path, include_system: bo
         criteria = {'name': name_pattern}
 
         # Ignore common system / heavy directories by default
-        ignore_names = set()
+            ignore_names = set()
         if not include_system:
             if os.name == 'nt':
                 # Core Windows / system folders
@@ -178,14 +178,14 @@ def find(pattern: str, root: Path, limit: int, in_file: Path, include_system: bo
                 match_bar.close()
 
 
-        if not results:
-            click.echo("❌ No files found matching the criteria.")
-            return
+            if not results:
+                click.echo("❌ No files found matching the criteria.")
+                return
 
-        click.echo(f"✅ Found {len(results)} items")
+            click.echo(f"✅ Found {len(results)} items")
         for r in results:
-            click.echo(str(r['path']))
-    except Exception as e:
+                click.echo(str(r['path']))
+        except Exception as e:
         click.echo(f"❌ Error during search: {e}", err=True)
 
 
@@ -292,11 +292,11 @@ def files(path: Path, name: str, regex: str, size: str, modified: str, type: str
         criteria['extensions'] = set(ext if ext.startswith('.') else f'.{ext}' for ext in extension)
     
     ignore_patterns = set(ignore) if ignore else set()
-
+    
     # Display search criteria only for human (table) output
     if output == 'table':
         _display_search_criteria(criteria, type, ignore_patterns, max_depth, show_hidden)
-
+    
     # Progress bars: обход + найденные (только при лимите)
     scan_bar = tqdm(desc="Scanning", unit="entry", dynamic_ncols=True, leave=False)
     match_bar = tqdm(
@@ -338,7 +338,7 @@ def files(path: Path, name: str, regex: str, size: str, modified: str, type: str
         if export:
             _export_results(results, export, output)
             click.echo(f"📄 Results exported to: {export}")
-
+            
     except Exception as e:
         click.echo(f"❌ Error during search: {e}", err=True)
 
@@ -402,7 +402,7 @@ def content(path: Path, pattern: str, regex: bool, case_sensitive: bool, extensi
             click.echo(f"📁 Extensions: {', '.join(sorted(extensions))}")
         if context > 0:
             click.echo(f"📝 Context lines: {context}")
-
+    
     # Progress bars: обход + совпадения (только при лимите)
     scan_bar = tqdm(desc="Scanning", unit="line", dynamic_ncols=True, leave=False)
     match_bar = tqdm(
@@ -438,7 +438,7 @@ def content(path: Path, pattern: str, regex: bool, case_sensitive: bool, extensi
             _display_content_results(results, context)
         elif output == 'json':
             click.echo(json.dumps(results, indent=2, default=str))
-
+            
     except Exception as e:
         click.echo(f"❌ Error during content search: {e}", err=True)
 
@@ -548,53 +548,53 @@ def _search_files(
     
     def _matches_criteria(item_path: Path, st, is_file: bool) -> bool:
         """Check if item matches all criteria."""
-        # Name criteria
-        if 'name' in criteria:
-            if not fnmatch.fnmatch(item_path.name, criteria['name']):
-                return False
-
-        # Regex criteria
+            # Name criteria
+            if 'name' in criteria:
+                if not fnmatch.fnmatch(item_path.name, criteria['name']):
+                    return False
+            
+            # Regex criteria
         if regex_pattern is not None:
             if not regex_pattern.search(item_path.name):
-                return False
-
-        # Size criteria (only for files)
+                    return False
+            
+            # Size criteria (only for files)
         if 'size' in criteria and is_file:
-            size_crit = criteria['size']
+                size_crit = criteria['size']
             file_size = st.st_size
-
-            if size_crit['operator'] == '>':
-                if file_size <= size_crit['size']:
-                    return False
-            elif size_crit['operator'] == '<':
-                if file_size >= size_crit['size']:
-                    return False
-            elif size_crit['operator'] == '=':
-                if abs(file_size - size_crit['size']) > size_crit['size'] * 0.1:  # 10% tolerance
-                    return False
-
-        # Modified time criteria
-        if 'modified' in criteria:
-            mod_crit = criteria['modified']
+                
+                if size_crit['operator'] == '>':
+                    if file_size <= size_crit['size']:
+                        return False
+                elif size_crit['operator'] == '<':
+                    if file_size >= size_crit['size']:
+                        return False
+                elif size_crit['operator'] == '=':
+                    if abs(file_size - size_crit['size']) > size_crit['size'] * 0.1:  # 10% tolerance
+                        return False
+            
+            # Modified time criteria
+            if 'modified' in criteria:
+                mod_crit = criteria['modified']
             mod_time = datetime.fromtimestamp(st.st_mtime)
-
-            if mod_crit['operator'] == '>':
-                if mod_time <= mod_crit['time']:
-                    return False
-            elif mod_crit['operator'] == '<':
-                if mod_time >= mod_crit['time']:
-                    return False
-            elif mod_crit['operator'] == '=':
-                # Same day
-                if mod_time.date() != mod_crit['time'].date():
-                    return False
-
-        # Extension criteria (only for files)
+                
+                if mod_crit['operator'] == '>':
+                    if mod_time <= mod_crit['time']:
+                        return False
+                elif mod_crit['operator'] == '<':
+                    if mod_time >= mod_crit['time']:
+                        return False
+                elif mod_crit['operator'] == '=':
+                    # Same day
+                    if mod_time.date() != mod_crit['time'].date():
+                        return False
+            
+            # Extension criteria (only for files)
         if 'extensions' in criteria and is_file:
-            if item_path.suffix.lower() not in criteria['extensions']:
-                return False
-
-        return True
+                if item_path.suffix.lower() not in criteria['extensions']:
+                    return False
+            
+            return True
     
     def _search_recursive(current_path: Path, depth: int):
         """Recursively search directories."""
@@ -608,18 +608,18 @@ def _search_files(
             for item in current_path.iterdir():
                 if limit and len(results) >= limit:
                     break
-
+                
                 if progress_scan is not None:
                     progress_scan.update(1)
 
                 # Skip hidden files unless requested
                 if not show_hidden and item.name.startswith('.'):
                     continue
-
+                
                 # Skip ignored patterns
                 if _should_ignore(item):
                     continue
-
+                
                 try:
                     st = item.stat()
                 except (OSError, PermissionError):
@@ -633,24 +633,24 @@ def _search_files(
                     continue
                 elif search_type == 'dir' and not is_dir:
                     continue
-
+                
                 # Check if matches criteria
                 if _matches_criteria(item, st, is_file):
                     if progress_found is not None:
                         progress_found.update(1)
-                    results.append({
-                        'path': str(item),
-                        'name': item.name,
+                        results.append({
+                            'path': str(item),
+                            'name': item.name,
                         'type': 'file' if is_file else 'directory',
                         'size': st.st_size if is_file else None,
                         'modified': datetime.fromtimestamp(st.st_mtime),
                         'permissions': oct(st.st_mode)[-3:],
-                    })
-
+                        })
+                
                 # Recurse into directories
                 if is_dir:
                     _search_recursive(item, depth + 1)
-
+                    
         except (OSError, PermissionError):
             pass
     
@@ -685,14 +685,14 @@ def _search_content(
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 lines = f.readlines()
-
+            
             for line_num, line in enumerate(lines, 1):
                 if progress_scan is not None:
                     progress_scan.update(1)
 
                 if limit and len(results) >= limit:
                     break
-
+                
                 match = pattern.search(line)
                 if match:
                     result = {
@@ -703,7 +703,7 @@ def _search_content(
                         'match_end': match.end(),
                         'match_text': match.group()
                     }
-
+                    
                     # Add context if requested
                     if context > 0:
                         start_line = max(0, line_num - context - 1)
@@ -715,11 +715,11 @@ def _search_content(
                             }
                             for i in range(end_line - start_line)
                         ]
-
+                    
                     if progress_found is not None:
                         progress_found.update(1)
                     results.append(result)
-
+                    
         except (OSError, PermissionError, UnicodeDecodeError):
             pass
     

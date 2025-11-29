@@ -27,7 +27,7 @@ click.rich_click.MAX_WIDTH = 100
 
 
 @click.group()
-@click.version_option(version="0.5.0", prog_name="onyx")
+@click.version_option(version="0.5.1", prog_name="onyx")
 def cli():
     """[bold]Onyx[/bold] — a toolbox of everyday CLI utilities.
 
