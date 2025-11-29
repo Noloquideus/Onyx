@@ -8,15 +8,14 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from collections import defaultdict, deque
-import click
+import rich_click as click
 import psutil
 from tqdm import tqdm
 
 
 @click.group()
 def monitor():
-    """System resource monitoring and process management."""
-    pass
+    """System resource monitoring and lightweight performance tools."""
 
 
 @monitor.command()
@@ -29,7 +28,13 @@ def monitor():
 @click.option('--alert-disk', type=float, default=90.0, help='Disk usage alert threshold (%)')
 def system(interval: float, duration: int, output: str, save: str, 
           alert_cpu: float, alert_memory: float, alert_disk: float):
-    """Monitor overall system resources."""
+    """Monitor overall system resources (CPU, memory, disk, load).
+
+    Examples:
+      onyx monitor system
+      onyx monitor system --interval 2 --duration 60
+      onyx monitor system --output json --save system.json
+    """
     
     if output == 'live':
         click.echo("🖥️ System Resource Monitor")
@@ -105,7 +110,13 @@ def system(interval: float, duration: int, output: str, save: str,
 @click.option('--show-connections', is_flag=True, help='Show network connections')
 def processes(top: int, sort_by: str, filter_user: str, filter_name: str, 
              interval: float, output: str, show_threads: bool, show_connections: bool):
-    """Monitor running processes."""
+    """Monitor running processes and their resource usage.
+
+    Examples:
+      onyx monitor processes
+      onyx monitor processes --top 20 --sort-by memory
+      onyx monitor processes --filter-name python --show-threads
+    """
     
     if output == 'live':
         click.echo("📊 Process Monitor")
@@ -142,7 +153,13 @@ def processes(top: int, sort_by: str, filter_user: str, filter_name: str,
 @click.option('--duration', '-d', type=int, help='Duration to monitor in seconds')
 @click.option('--output', '-o', type=click.Choice(['live', 'json']), default='live', help='Output format')
 def network(interval: float, interface: str, duration: int, output: str):
-    """Monitor network activity."""
+    """Monitor network throughput per interface (bytes/packets per second).
+
+    Examples:
+      onyx monitor network
+      onyx monitor network --interface Ethernet --duration 30
+      onyx monitor network --output json
+    """
     
     if output == 'live':
         click.echo("🌐 Network Activity Monitor")
@@ -200,7 +217,12 @@ def network(interval: float, interface: str, duration: int, output: str):
 @click.option('--output', '-o', type=click.Choice(['live', 'json']), default='live', help='Output format')
 @click.option('--show-inodes', is_flag=True, help='Show inode information')
 def disk(path: tuple, interval: float, output: str, show_inodes: bool):
-    """Monitor disk usage and I/O."""
+    """Monitor disk usage and I/O rates.
+
+    Examples:
+      onyx monitor disk
+      onyx monitor disk --path C:\\ --interval 5
+    """
     
     if output == 'live':
         click.echo("💾 Disk Monitor")
@@ -247,7 +269,12 @@ def disk(path: tuple, interval: float, output: str, show_inodes: bool):
 @click.option('--interval', '-i', type=float, default=1.0, help='Update interval in seconds')
 @click.option('--output', '-o', type=click.Choice(['summary', 'json']), default='summary', help='Output format')
 def performance(duration: int, interval: float, output: str):
-    """Run comprehensive performance benchmark."""
+    """Run a short performance benchmark and summarize results.
+
+    Examples:
+      onyx monitor performance
+      onyx monitor performance --duration 120 --interval 2 --output json
+    """
     
     click.echo("🏃 Performance Benchmark")
     click.echo(f"⏰ Duration: {duration} seconds")
