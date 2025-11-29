@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.7] - 2025-11-29
+
+### Fixed
+- Added `rich-click` as a runtime dependency and updated the Windows PyInstaller build (`--hidden-import=rich_click`) so the packaged `onyx.exe` and installer no longer fail with `ModuleNotFoundError: No module named 'rich_click'`.
+
 ## [0.5.6] - 2025-11-29
 
 ### Changed

@@ -44,7 +44,7 @@ jobs:
     
     - name: Build executable (Windows)
       run: |
-        poetry run pyinstaller --onefile --name onyx onyx/main.py
+        poetry run pyinstaller --onefile --name onyx --hidden-import=rich_click onyx/main.py
         dir dist\
         move dist\onyx.exe dist\onyx-windows.exe
         dir dist\

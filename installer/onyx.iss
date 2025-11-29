@@ -3,7 +3,7 @@
 ;   dist\onyx-windows.exe (portable CLI)
 
 #define MyAppName "Onyx CLI"
-#define MyAppVersion "0.5.6"
+#define MyAppVersion "0.5.7"
 ; Portable exe name in dist\
 #define MyPortableExe "onyx-windows.exe"
 ; Installed exe name in {app} (what users will call from PATH)
