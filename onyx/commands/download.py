@@ -11,7 +11,7 @@ import re
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse, unquote
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import click
+import rich_click as click
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -20,8 +20,7 @@ from tqdm import tqdm
 
 @click.group()
 def download():
-    """Download files with progress tracking and resume support."""
-    pass
+    """HTTP/HTTPS download helpers with progress bars and resume support."""
 
 
 @download.command()
@@ -40,7 +39,13 @@ def download():
 def single(url: str, output: Path, resume: bool, chunk_size: int, timeout: int, 
           retries: int, user_agent: str, headers: tuple, verify_ssl: bool, 
           max_size: str, checksum: str, quiet: bool):
-    """Download a single file from URL."""
+    """Download a single file from URL with an optional progress bar.
+
+    Examples:
+      onyx download single https://example.com/file.zip
+      onyx download single https://example.com/file.zip -o ./downloads --resume
+      onyx download single https://example.com/file.zip --max-size 100MB --checksum <sha256>
+    """
     
     if not quiet:
         click.echo(f"🔗 Downloading: {url}")
@@ -111,7 +116,13 @@ def single(url: str, output: Path, resume: bool, chunk_size: int, timeout: int,
 def batch(urls_file: Path, output_dir: Path, workers: int, resume: bool, timeout: int,
          retries: int, user_agent: str, verify_ssl: bool, continue_on_error: bool,
          output_format: str):
-    """Download multiple files from a list of URLs."""
+    """Download multiple files from a text file of URLs (one per line).
+
+    Examples:
+      onyx download batch urls.txt -o ./downloads
+      onyx download batch urls.txt -o ./downloads --workers 8 --resume
+      onyx download batch urls.txt --output json
+    """
     
     # Read URLs from file
     try:
@@ -244,7 +255,12 @@ def batch(urls_file: Path, output_dir: Path, workers: int, resume: bool, timeout
 @click.option('--verify-ssl', is_flag=True, default=True, help='Verify SSL certificates')
 def accelerated(url: str, parts: int, output: Path, timeout: int, retries: int,
                user_agent: str, verify_ssl: bool):
-    """Download file using multiple connections for acceleration."""
+    """Download a file using multiple HTTP range requests in parallel.
+
+    Examples:
+      onyx download accelerated https://example.com/large.iso
+      onyx download accelerated https://example.com/large.iso --parts 8 -o large.iso
+    """
     
     click.echo(f"🚀 Accelerated download: {url}")
     click.echo(f"🔗 Parts: {parts}")
