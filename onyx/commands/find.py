@@ -92,7 +92,7 @@ def find(pattern: str, root: Path, limit: int, in_file: Path, include_system: bo
         criteria = {'name': name_pattern}
 
         # Ignore common system / heavy directories by default
-            ignore_names = set()
+        ignore_names = set()
         if not include_system:
             if os.name == 'nt':
                 # Core Windows / system folders

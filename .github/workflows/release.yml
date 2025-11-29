@@ -84,11 +84,13 @@ jobs:
       with:
         files: |
           onyx-Windows/onyx-windows.exe
+          onyx-Windows/onyx-setup.exe
         body: |
           ## 🎉 Onyx CLI ${{ github.ref_name }}
 
           ### 📦 Downloads
-          - **Windows**: `onyx-windows.exe` — run from PowerShell or Command Prompt
+          - **Windows portable**: `onyx-windows.exe` — run from PowerShell or Command Prompt
+          - **Windows installer**: `onyx-setup.exe` — guided install with optional PATH integration
 
           ### 🚀 Highlights
           - Windows-first CLI toolbox (tree, find, backup, git, net, download, monitor, services, etc.).
